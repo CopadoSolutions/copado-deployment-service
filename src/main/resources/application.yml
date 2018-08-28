@@ -1,0 +1,13 @@
+# Log configuration
+logging:
+  level:
+    org:
+      springframework:
+        web:DEBUG
+
+server.tomcat.accesslog:
+  enabled: true
+  pattern: '%h %l %u %t "%r" %s %b %D'
+
+# debug: true
+# trace: true

@@ -1,0 +1,17 @@
+target/*
+*/.idea/*
+.idea
+*.iml
+playground/current.json
+playground/dev.env
+playground/prod.env
+/target/
+.classpath
+.project
+.settings/
+job.json
+.DS_Store
+git.sh
+fetchUntilCommits.sh
+fetchUntilCommonNode.sh
+Copado.yml
