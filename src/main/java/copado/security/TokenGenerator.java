@@ -15,7 +15,7 @@ import java.util.TimeZone;
 public class TokenGenerator {
 
     /**
-     * Looks for <code>copado.deployment.service.crypto.key</code> enviroment variable and build a token with "hour" based timestamp
+     * Looks for <code>ENDPOINT_CRYPTO_KEY</code> enviroment variable and build a token with "hour" based timestamp
      * @return generated token or empty if could not create the token.
      */
     public static Optional<String> generateToken(){
@@ -30,7 +30,7 @@ public class TokenGenerator {
         String timeStamp  = year + month + day + hour;
 
         try {
-            String tokenWithTimeStamp = System.getenv("copado.deployment.service.crypto.key") + "_" + timeStamp;
+            String tokenWithTimeStamp = System.getenv("ENDPOINT_CRYPTO_KEY") + "_" + timeStamp;
 
             MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
             messageDigest.update(tokenWithTimeStamp.getBytes());
