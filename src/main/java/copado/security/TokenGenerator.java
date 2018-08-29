@@ -1,5 +1,6 @@
 package copado.security;
 
+import copado.utils.CryptoUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.xml.bind.DatatypeConverter;
@@ -31,14 +32,9 @@ public class TokenGenerator {
 
         try {
             String tokenWithTimeStamp = System.getenv("ENDPOINT_CRYPTO_KEY") + "_" + timeStamp;
-
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-            messageDigest.update(tokenWithTimeStamp.getBytes());
-            byte[] digest = messageDigest.digest();
-            String encryptedString = DatatypeConverter.printHexBinary(digest);
-
-            return Optional.of(encryptedString);
+            return CryptoUtils.buildSHA256(tokenWithTimeStamp);
         }catch (Exception e){
+            log.error("An error occurs while generating token. Error: {}",e);
             return Optional.empty();
         }
     }
