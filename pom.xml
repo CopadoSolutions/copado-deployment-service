@@ -65,6 +65,38 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Git -->
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+            <version>5.0.2.201807311906-r</version>
+        </dependency>
+
+        <!-- Ant -->
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant</artifactId>
+            <version>1.9.7</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-launcher</artifactId>
+            <version>1.9.7</version>
+        </dependency>
+
+        <!-- Salesforce -->
+        <dependency>
+            <groupId>com.force.api</groupId>
+            <artifactId>force-partner-api</artifactId>
+            <version>43.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.force.api</groupId>
+            <artifactId>force-metadata-api</artifactId>
+            <version>43.0.0</version>
+        </dependency>
+
         <!-- For test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

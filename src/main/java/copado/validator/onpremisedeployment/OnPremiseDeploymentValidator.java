@@ -1,7 +1,7 @@
 package copado.validator.onpremisedeployment;
 
-import copado.utils.CryptoUtils;
-import copado.utils.PathUtils;
+import copado.util.CryptoUtils;
+import copado.util.PathUtils;
 import copado.validator.Validator;
 import copado.validator.ValidatorException;
 import lombok.extern.slf4j.Slf4j;
@@ -74,7 +74,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
 
         } catch (Exception e) {
             log.error("Could not create temporal directory on:'{}', exception:'{}'", TEMP, e);
-            safeDelete(tmpDir);
+            PathUtils.safeDelete(tmpDir);
         }
 
         return Optional.empty();
@@ -135,23 +135,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
         log.info("FINISHED! Decompressed zip file:'', into path:'{}'", zipFile, pathForDecompress);
     }
 
-    /**
-     * Removes the directory if exists.
-     *
-     * @param dir
-     */
-    private void safeDelete(Path dir) {
-        log.info("Safe deleting dir:{}", dir);
-        if (dir != null && Files.isDirectory(dir)) {
-            try {
-                FileUtils.deleteDirectory(new File(dir.toAbsolutePath().toString()));
-            } catch (Exception e) {
-                log.error("Could not delete directory:'{}', exception:'{}'", TEMP, e);
-            }
-        }
-        log.info("FINISHED deleting dir:{}", dir);
 
-    }
 
     /**
      * Given a path, it walk through all the regular files (in current directory and subdirectories)

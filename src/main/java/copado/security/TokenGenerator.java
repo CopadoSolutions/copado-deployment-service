@@ -1,10 +1,9 @@
 package copado.security;
 
-import copado.utils.CryptoUtils;
+import copado.util.CryptoUtils;
+import copado.util.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.xml.bind.DatatypeConverter;
-import java.security.MessageDigest;
 import java.util.Calendar;
 import java.util.Optional;
 import java.util.TimeZone;
@@ -31,7 +30,7 @@ public class TokenGenerator {
         String timeStamp  = year + month + day + hour;
 
         try {
-            String tokenWithTimeStamp = System.getenv("ENDPOINT_CRYPTO_KEY") + "_" + timeStamp;
+            String tokenWithTimeStamp = SystemProperties.ENDPOINT_CRYPTO_KEY.value() + "_" + timeStamp;
             return CryptoUtils.buildSHA256(tokenWithTimeStamp);
         }catch (Exception e){
             log.error("An error occurs while generating token. Error: {}",e);

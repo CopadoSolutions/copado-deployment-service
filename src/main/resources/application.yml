@@ -1,7 +1,9 @@
 # Log configuration
 logging.level:
-    org.springframework.web:DEBUG
-    copado:INFO
+    org:
+        springframework:
+            web: DEBUG
+    copado: INFO
 
 # debug: true
 # trace: true

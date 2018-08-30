@@ -1,13 +1,13 @@
-package copado.utils;
+package copado.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import javax.validation.constraints.NotNull;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.regex.Pattern;
 
 @Slf4j
 public class PathUtils {
@@ -41,5 +41,23 @@ public class PathUtils {
         }
 
         return Optional.empty();
+    }
+
+    /**
+     * Removes the directory if exists.
+     *
+     * @param dir
+     */
+    public static void safeDelete(Path dir) {
+        log.info("Safe deleting dir:{}", dir);
+        if (dir != null && Files.isDirectory(dir)) {
+            try {
+                FileUtils.deleteDirectory(new File(dir.toAbsolutePath().toString()));
+            } catch (Exception e) {
+                log.error("Could not delete directory:'{}', exception:'{}'", dir, e);
+            }
+        }
+        log.info("FINISHED deleting dir:{}", dir);
+
     }
 }
