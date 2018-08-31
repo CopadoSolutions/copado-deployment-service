@@ -54,7 +54,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
      * @param zipFile zip file
      * @return temporal directory with the zip content.
      */
-    private Optional<Path> decompressZip(Path zipFile) {
+    private static Optional<Path> decompressZip(Path zipFile) {
         Path tmpDir = null;
 
         try {
@@ -87,7 +87,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
      * @param pathForDecompress
      * @throws Exception
      */
-    private void decompressZip(Path zipFile, Path pathForDecompress) throws Exception {
+    private  static void decompressZip(Path zipFile, Path pathForDecompress) throws Exception {
 
         log.info("Starting to decompress zip file:'{}', into path:'{}'", zipFile, pathForDecompress);
 
@@ -146,7 +146,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
      * @param path
      * @return
      */
-    private List<FileWithHash> buildSHA256ForZipPath(Path path) {
+    private static List<FileWithHash> buildSHA256ForZipPath(Path path) {
 
         log.info("Started building sha-256 hash list for path:'{}'", path);
 

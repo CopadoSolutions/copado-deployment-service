@@ -97,6 +97,32 @@
             <version>43.0.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.liferay</groupId>
+            <artifactId>com.sforce.soap.partner</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.force.api</groupId>
+            <artifactId>force-apex-api</artifactId>
+            <version>43.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.force.api</groupId>
+            <artifactId>force-wsc</artifactId>
+            <version>43.0.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/it.dontesta.labs.liferay.salesforce.client.soap/salesforce-client-soap -->
+        <dependency>
+            <groupId>it.dontesta.labs.liferay.salesforce.client.soap</groupId>
+            <artifactId>salesforce-client-soap</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+
+
         <!-- For test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
