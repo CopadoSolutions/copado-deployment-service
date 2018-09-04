@@ -17,7 +17,7 @@ public class OnPremiseDeploymentController {
 
     @GetMapping("deploy")
     public ResponseEntity<String> onDeploy(){
-        job.doJob("promote_branch","target_branch");
+        job.doJob("promote_branch","target_branch","deployment_branch","DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
         return new ResponseEntity<String>("Deployed!", HttpStatus.OK);
     }
 }

@@ -1,5 +1,6 @@
 package copado.job;
 
+import copado.services.gerrit.GerritService;
 import copado.util.GitClientUtils;
 import copado.util.PathUtils;
 import copado.validator.Validator;
@@ -8,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -16,7 +16,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -37,22 +36,28 @@ public class OnPremiseDeploymentJob {
     private Validator<Info> validator;
 
 
+    @Autowired
+    private GerritService gerritService;
+
+
     @Async
-    public void doJob(String promoteBranch, String targetBranch, String deploymentBranch) {
+    public void doJob(String promoteBranch, String targetBranch, String deploymentBranch, String gerritChangeId) {
         log.info("Starting job");
 
         Path gitTMP = null;
         Path deployZipFileTMP = null;
 
         try {
+
+            // Check if it is a valid gerrit change
+            if (!gerritService.isValidChange(gerritChangeId)) {
+                throw new Exception("Invalid gerrit promotion branch");
+            }
+
+            log.info("Creating git temporal dir.");
             gitTMP = Files.createTempDirectory(TEMP_GIT);
             log.info("Created temporal dir:'{}'", gitTMP);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
 
-        try {
             Optional<Git> gitOpt = GitClientUtils.cloneRepo(gitTMP);
             if (gitOpt.isPresent()) {
 
@@ -60,34 +65,32 @@ public class OnPremiseDeploymentJob {
                 Git git = gitOpt.get();
 
                 // Donwload all branch changes needed
-                GitClientUtils.cloneBranchFromRepo(git,promoteBranch);
-                GitClientUtils.cloneBranchFromRepo(git,targetBranch);
-                GitClientUtils.cloneBranchFromRepo(git,deploymentBranch);
+                GitClientUtils.cloneBranchFromRepo(git, promoteBranch);
+                GitClientUtils.cloneBranchFromRepo(git, targetBranch);
+                GitClientUtils.cloneBranchFromRepo(git, deploymentBranch);
 
                 // Copy deploy zip to temporal dir
                 deployZipFileTMP = Files.createTempDirectory(TEMP_DEPLOY).resolve("deploy.zip");
-                copyDeployZipToTemporalDir(git,deploymentBranch,gitTMP,deployZipFileTMP);
+                copyDeployZipToTemporalDir(git, deploymentBranch, gitTMP, deployZipFileTMP);
 
                 //Validate promote-branch with deploy zip
-                GitClientUtils.checkout(git,promoteBranch);
-                boolean isValid = validator.validate(new Info(deployZipFileTMP,gitTMP));
-                log.info("Is valid deployment:{}",isValid);
+                GitClientUtils.checkout(git, promoteBranch);
+                boolean isValid = validator.validate(new Info(deployZipFileTMP, gitTMP));
+                log.info("Is valid deployment:{}", isValid);
 
                 // Merge to target branch, commit and push
-                if(isValid) {
+                if (isValid) {
                     // Checkout target_branch
                     GitClientUtils.checkout(git, targetBranch);
 
-                    // Retrieve promoteBranch branch
+                    // Commit changes on git
                     Ref promoteBranchRef = GitClientUtils.getBranch(git, promoteBranch);
                     GitClientUtils.mergeWithBranch(git, promoteBranchRef, targetBranch);
-
                     GitClientUtils.push(git);
                 }
-
             }
         } catch (Exception e) {
-            log.error("On premise deployment failed:",e);
+            log.error("On premise deployment failed:", e);
         } finally {
             PathUtils.safeDelete(gitTMP);
             PathUtils.safeDelete(deployZipFileTMP);
@@ -95,11 +98,10 @@ public class OnPremiseDeploymentJob {
     }
 
 
-
     private static void copyDeployZipToTemporalDir(Git git, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws Exception {
-        GitClientUtils.checkout(git,deploymentBranch);
+        GitClientUtils.checkout(git, deploymentBranch);
         Path deployZip = findDeployZipPath(deployBranchPath);
-        FileUtils.copyFile(new File(deployZip.toAbsolutePath().toString()),new File(deployZipDest.toAbsolutePath().toString()));
+        FileUtils.copyFile(new File(deployZip.toAbsolutePath().toString()), new File(deployZipDest.toAbsolutePath().toString()));
     }
 
 
@@ -110,7 +112,7 @@ public class OnPremiseDeploymentJob {
                 .filter(f -> ZIP_EXT.equalsIgnoreCase(FilenameUtils.getExtension(f.toString())))
                 .collect(Collectors.toList());
 
-        if ( zipFiles != null && zipFiles.size() == 1 ){
+        if (zipFiles != null && zipFiles.size() == 1) {
             return zipFiles.get(0);
         }
 
