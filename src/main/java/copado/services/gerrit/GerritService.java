@@ -31,7 +31,6 @@ public class GerritService {
 
         //Create connection
         connection = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(gson)).baseUrl(SystemProperties.GERRIT_ENDPOINT.value()).client(builder.build()).build();
-
         api = connection.create(GerritAPI.class);
     }
 
@@ -46,9 +45,26 @@ public class GerritService {
                 throw new Exception("Response is not successful.");
             }
 
+            log.info("Response: ");
+
+
             Change change = response.body();
-            log.info("Change '{}' verified:'{}'",changeId,change.getLabels().getCodeReviewVerfied());
-            return change.getLabels().getCodeReviewVerfied();
+            if(change.getLabels() == null) {
+                throw new Exception("Gerrit change does not have labels. Change id:"+changeId);
+            }
+
+            if(change.getLabels().getCodeReview() == null) {
+                throw new Exception("Gerrit labels for change does not have Code-Review. Change id:"+changeId);
+            }
+
+            if(change.getLabels().getCodeReview().getValues() == null) {
+                throw new Exception("Gerrit Code-Review for change label does not have values. Change id:"+changeId);
+            }
+
+            String verifiedStr = change.getLabels().getCodeReview().getValues().get("+2");
+
+            log.info("Change '{}' verified:'{}'",changeId,verifiedStr);
+            return verifiedStr != null;
 
         } catch (Exception e) {
             log.error("Could not retrieve Gerrit change:'{}'. Error:",changeId,e);

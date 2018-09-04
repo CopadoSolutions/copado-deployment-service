@@ -6,6 +6,6 @@ import retrofit2.http.Path;
 
 interface GerritAPI {
 
-    @GET("a/change/{changeId}/detail")
+    @GET("a/changes/{changeId}/detail")
     Call<Change> getChangeDetail(@Path("changeId") String changeId);
 }
