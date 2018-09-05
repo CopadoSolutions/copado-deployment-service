@@ -29,7 +29,7 @@ public class CopadoService {
                 SystemProperties.COPADO_URL.value()
         );
     }
-
+/*
     public String createDeploymentRecord(SObject promotion, String promotionId, boolean sendEmail, Optional<String> deploymentName) throws ConnectionException {
 
         GetServerTimestampResult tsr = connection.getServerTimestamp();
@@ -67,6 +67,29 @@ public class CopadoService {
             deploymentNameStr = deploymentName.get();
         }
         return  deploymentNameStr;
+    }*/
+
+
+    /**
+     * ID por param
+     *
+     * Deployer.java
+     */
+
+
+    public void updateDeploymentJobStatus(String status, String id) {
+
+        log.info("Updating Deployment Job status:'{}' id:'{}'", status, id);
+        SObject object = new SObject();
+        object.setType("copado__Deployment_Job__c");
+        object.setField("copado__Status__c", status);
+        object.setId(id);
+
+        try {
+            connection.update(new SObject[] { object });
+        } catch (Exception e) {
+            log.error("Error updating status with message:'{}'", e.getMessage(), e);
+        }
     }
 
 }

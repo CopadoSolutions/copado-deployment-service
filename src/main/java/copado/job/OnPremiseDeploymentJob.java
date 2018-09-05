@@ -1,6 +1,7 @@
 package copado.job;
 
 import copado.service.gerrit.GerritService;
+import copado.service.salesforce.CopadoService;
 import copado.service.salesforce.SalesforceService;
 import copado.util.GitClientUtils;
 import copado.util.PathUtils;
@@ -43,15 +44,20 @@ public class OnPremiseDeploymentJob {
     @Autowired
     private SalesforceService salesforceService;
 
+    @Autowired
+    private CopadoService copadoService;
+
 
     @Async
-    public void doJob(String promoteBranch, String targetBranch, String deploymentBranch, String gerritChangeId) {
+    public void doJob(String deploymentJobId, String promoteBranch, String targetBranch, String deploymentBranch, String gerritChangeId) {
         log.info("Starting job");
 
         Path gitTMP = null;
         Path deployZipFileTMPDir = null;
 
         try {
+
+            copadoService.updateDeploymentJobStatus(deploymentJobId, "Starting");
 
             // Check if it is a valid gerrit change
             if (!gerritService.isValidChange(gerritChangeId)) {
@@ -65,6 +71,9 @@ public class OnPremiseDeploymentJob {
             Optional<Git> gitOpt = GitClientUtils.cloneRepo(gitTMP);
             if (gitOpt.isPresent()) {
 
+                // ············································
+                // Retrieving GIT info
+                // ············································
                 log.info("Repository correctly cloned.");
                 Git git = gitOpt.get();
 
@@ -78,30 +87,42 @@ public class OnPremiseDeploymentJob {
                 Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
                 copyDeployZipToTemporalDir(git, deploymentBranch, gitTMP, deployZipFileTMP);
 
-                //Validate promote-branch with deploy zip
+
+                // ············································
+                // Validate promote-branch with deploy zip
+                // ············································
                 GitClientUtils.checkout(git, promoteBranch);
+                copadoService.updateDeploymentJobStatus(deploymentJobId, "Validating deployment zip with promotion branch.");
                 boolean isValid = validator.validate(new Info(deployZipFileTMP, gitTMP));
                 log.info("Is valid deployment:{}", isValid);
 
-                // Merge to target branch, commit and push
-                if (isValid) {
-
-                    // Deploy with salesforce
-                    salesforceService.deployZip(deployZipFileTMP.toAbsolutePath().toString());
-
-                    // Checkout target_branch
-                    GitClientUtils.checkout(git, targetBranch);
-
-                    // Commit changes on git
-                    Ref promoteBranchRef = GitClientUtils.getBranch(git, promoteBranch);
-                    GitClientUtils.mergeWithBranch(git, promoteBranchRef, targetBranch);
-                    GitClientUtils.push(git);
-
-
+                if (!isValid) {
+                    throw new Exception("Invalid deployment zip");
                 }
+
+                // ············································
+                // Merge to target branch, commit and push
+                // ············································
+
+                // Deploy with salesforce
+                salesforceService.deployZip(deployZipFileTMP.toAbsolutePath().toString());
+                
+                copadoService.updateDeploymentJobStatus(deploymentJobId, "Salesforce deployment step success");
+
+                // Checkout target_branch
+                GitClientUtils.checkout(git, targetBranch);
+
+                // Commit changes on git
+                Ref promoteBranchRef = GitClientUtils.getBranch(git, promoteBranch);
+                GitClientUtils.mergeWithBranch(git, promoteBranchRef, targetBranch);
+                GitClientUtils.push(git);
+
+                copadoService.updateDeploymentJobStatus(deploymentJobId, "Success");
+
             }
         } catch (Exception e) {
             log.error("On premise deployment failed:", e);
+            copadoService.updateDeploymentJobStatus(deploymentJobId, "On premise deployment failed:" + e.getMessage());
         } finally {
             PathUtils.safeDelete(gitTMP);
             PathUtils.safeDelete(deployZipFileTMPDir);
