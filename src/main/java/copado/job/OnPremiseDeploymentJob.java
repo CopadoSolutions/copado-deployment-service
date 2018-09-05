@@ -106,7 +106,7 @@ public class OnPremiseDeploymentJob {
 
                 // Deploy with salesforce
                 salesforceService.deployZip(deployZipFileTMP.toAbsolutePath().toString());
-                
+
                 copadoService.updateDeploymentJobStatus(deploymentJobId, "Salesforce deployment step success");
 
                 // Checkout target_branch
