@@ -1,4 +1,4 @@
-package copado.services.gerrit;
+package copado.service.gerrit;
 
 import copado.util.SystemProperties;
 import okhttp3.Credentials;

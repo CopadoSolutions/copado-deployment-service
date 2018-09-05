@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -16,8 +17,12 @@ public class OnPremiseDeploymentController {
     private OnPremiseDeploymentJob job;
 
     @GetMapping("deploy")
-    public ResponseEntity<String> onDeploy(){
-        job.doJob("promote_branch","target_branch","deployment_branch","DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
-        return new ResponseEntity<String>("Deployed!", HttpStatus.OK);
+    public ResponseEntity<String> onDeploy(@RequestParam("promoteBranch") String promoteBranch,
+                                           @RequestParam("targetBranch") String targetBranch,
+                                           @RequestParam("deploymentBranch") String deploymentBranch,
+                                           @RequestParam("gerritChangeId") String gerritChangeId
+    ){
+        job.doJob(promoteBranch,targetBranch,deploymentBranch,gerritChangeId);
+        return new ResponseEntity<String>("Deploying...!", HttpStatus.OK);
     }
 }

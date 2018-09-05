@@ -1,6 +1,7 @@
 package copado.job;
 
-import copado.services.gerrit.GerritService;
+import copado.service.gerrit.GerritService;
+import copado.service.salesforce.SalesforceService;
 import copado.util.GitClientUtils;
 import copado.util.PathUtils;
 import copado.validator.Validator;
@@ -39,13 +40,16 @@ public class OnPremiseDeploymentJob {
     @Autowired
     private GerritService gerritService;
 
+    @Autowired
+    private SalesforceService salesforceService;
+
 
     @Async
     public void doJob(String promoteBranch, String targetBranch, String deploymentBranch, String gerritChangeId) {
         log.info("Starting job");
 
         Path gitTMP = null;
-        Path deployZipFileTMP = null;
+        Path deployZipFileTMPDir = null;
 
         try {
 
@@ -70,7 +74,8 @@ public class OnPremiseDeploymentJob {
                 GitClientUtils.cloneBranchFromRepo(git, deploymentBranch);
 
                 // Copy deploy zip to temporal dir
-                deployZipFileTMP = Files.createTempDirectory(TEMP_DEPLOY).resolve("deploy.zip");
+                deployZipFileTMPDir = Files.createTempDirectory(TEMP_DEPLOY);
+                Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
                 copyDeployZipToTemporalDir(git, deploymentBranch, gitTMP, deployZipFileTMP);
 
                 //Validate promote-branch with deploy zip
@@ -80,6 +85,10 @@ public class OnPremiseDeploymentJob {
 
                 // Merge to target branch, commit and push
                 if (isValid) {
+
+                    // Deploy with salesforce
+                    salesforceService.deployZip(deployZipFileTMP.toAbsolutePath().toString());
+
                     // Checkout target_branch
                     GitClientUtils.checkout(git, targetBranch);
 
@@ -87,13 +96,15 @@ public class OnPremiseDeploymentJob {
                     Ref promoteBranchRef = GitClientUtils.getBranch(git, promoteBranch);
                     GitClientUtils.mergeWithBranch(git, promoteBranchRef, targetBranch);
                     GitClientUtils.push(git);
+
+
                 }
             }
         } catch (Exception e) {
             log.error("On premise deployment failed:", e);
         } finally {
             PathUtils.safeDelete(gitTMP);
-            PathUtils.safeDelete(deployZipFileTMP);
+            PathUtils.safeDelete(deployZipFileTMPDir);
         }
     }
 

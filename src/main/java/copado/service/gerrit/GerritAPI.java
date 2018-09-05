@@ -1,4 +1,4 @@
-package copado.services.gerrit;
+package copado.service.gerrit;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

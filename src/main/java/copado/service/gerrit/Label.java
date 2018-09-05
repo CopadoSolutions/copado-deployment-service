@@ -1,4 +1,4 @@
-package copado.services.gerrit;
+package copado.service.gerrit;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;

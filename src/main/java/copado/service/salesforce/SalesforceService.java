@@ -1,12 +1,10 @@
-package copado.util;
+package copado.service.salesforce;
 
 
 import java.io.*;
 
 import java.rmi.RemoteException;
 
-import com.sforce.soap.enterprise.EnterpriseConnection;
-import com.sforce.soap.enterprise.LoginResult;
 import com.sforce.soap.metadata.AsyncResult;
 import com.sforce.soap.metadata.DeployDetails;
 import com.sforce.soap.metadata.MetadataConnection;
@@ -17,51 +15,47 @@ import com.sforce.soap.metadata.RunTestsResult;
 import com.sforce.soap.metadata.RunTestFailure;
 import com.sforce.soap.metadata.CodeCoverageWarning;
 import com.sforce.ws.ConnectionException;
-import com.sforce.ws.ConnectorConfig;
+import copado.util.SystemProperties;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
 
 /**
  * Deploy a zip file of metadata components.
  * Prerequisite: Have a deploy.zip file that includes a package.xml manifest file that
  * details the contents of the zip file.
  */
-public class SalesforceUtils {
+@Service
+@Slf4j
+public class SalesforceService {
     // binding for the metadata WSDL used for making metadata API calls
-    private MetadataConnection metadataConnection;
-
-    static BufferedReader rdr = new BufferedReader(new InputStreamReader(System.in));
-
-    private static final String ZIP_FILE = "deploy.zip";
+    private MetadataConnection connection;
 
     // one second in milliseconds
     private static final long ONE_SECOND = 1000;
     // maximum number of attempts to deploy the zip file
     private static final int MAX_NUM_POLL_REQUESTS = 50;
 
-    public static void main(String[] args) throws Exception {
-        final String USERNAME = "user@company.com";
-        // This is only a sample. Hard coding passwords in source files is a bad practice.
-        final String PASSWORD = "password";
+    @PostConstruct
+    public void init() throws ConnectionException {
 
-        //TODO: version como parametro
-        final String URL = "https://login.salesforce.com/services/Soap/c/43.0";
-
-        SalesforceUtils sample = new SalesforceUtils(USERNAME, PASSWORD, URL);
-        sample.deployZip();
+        connection = SalesforceUtils.createMetadataConnection(
+                SystemProperties.ORGID_USERNAME.value(),
+                SystemProperties.ORGID_PASSWORD.value(),
+                SystemProperties.ORGID_TOKEN.value(),
+                SystemProperties.ORGID_URL.value()
+        );
     }
 
-    public SalesforceUtils(String username, String password, String loginUrl)
-            throws ConnectionException {
-        createMetadataConnection(username, password, loginUrl);
-    }
+    public void deployZip(String zipFileAbsolutePath) throws RemoteException, Exception {
 
-    public void deployZip()
-            throws RemoteException, Exception
-    {
-        byte zipBytes[] = readZipFile();
+        log.info("Deploying in salesforce zip file:{}",zipFileAbsolutePath);
+        byte zipBytes[] = readZipFile(zipFileAbsolutePath);
         DeployOptions deployOptions = new DeployOptions();
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
-        AsyncResult asyncResult = metadataConnection.deploy(zipBytes, deployOptions);
+        AsyncResult asyncResult = connection.deploy(zipBytes, deployOptions);
         String asyncResultId = asyncResult.getId();
 
         // Wait for the deploy to complete
@@ -81,8 +75,9 @@ public class SalesforceUtils {
 
             // Fetch in-progress details once for every 3 polls
             fetchDetails = (poll % 3 == 0);
-            deployResult = metadataConnection.checkDeployStatus(asyncResultId, fetchDetails);
-            System.out.println("Status is: " + deployResult.getStatus());
+            deployResult = connection.checkDeployStatus(asyncResultId, fetchDetails);
+
+            log.info("Status is: {}", deployResult.getStatus());
             if (!deployResult.isDone() && fetchDetails) {
                 printErrors(deployResult, "Failures for deployment in progress:\n");
             }
@@ -96,7 +91,7 @@ public class SalesforceUtils {
 
         if (!fetchDetails) {
             // Get the final result with details if we didn't do it in the last attempt.
-            deployResult = metadataConnection.checkDeployStatus(asyncResultId, true);
+            deployResult = connection.checkDeployStatus(asyncResultId, true);
         }
 
         if (!deployResult.isSuccess()) {
@@ -104,42 +99,40 @@ public class SalesforceUtils {
             throw new Exception("The files were not successfully deployed");
         }
 
-        System.out.println("The file " + ZIP_FILE + " was successfully deployed");
+        log.info("The file {} was successfully deployed", zipFileAbsolutePath);
     }
 
     /**
      * Read the zip file contents into a byte array.
+     *
      * @return byte[]
      * @throws Exception - if cannot find the zip file to deploy
      */
-    private byte[] readZipFile()
-            throws Exception
-    {
-        // We assume here that you have a deploy.zip file.
-        // See the retrieve sample for how to retrieve a zip file.
-        File deployZip = new File(ZIP_FILE);
-        if (!deployZip.exists() || !deployZip.isFile())
-            throw new Exception("Cannot find the zip file to deploy. Looking for " +
-                    deployZip.getAbsolutePath());
+    private byte[] readZipFile(String zipFileAbsolutePath) throws Exception {
 
-        FileInputStream fos = new FileInputStream(deployZip);
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        int readbyte = -1;
-        while ((readbyte = fos.read()) != -1)  {
-            bos.write(readbyte);
+        File deployZip = new File(zipFileAbsolutePath);
+        if (!deployZip.exists() || !deployZip.isFile()) {
+            throw new Exception("Cannot find the zip file to deploy. Looking for " + deployZip.getAbsolutePath());
         }
-        fos.close();
-        bos.close();
-        return bos.toByteArray();
+
+        try (FileInputStream fos = new FileInputStream(deployZip)) {
+            try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+                int readbyte = -1;
+                while ((readbyte = fos.read()) != -1) {
+                    bos.write(readbyte);
+                }
+                return bos.toByteArray();
+            }
+        }
     }
 
 
     /**
      * Print out any errors, if any, related to the deploy.
+     *
      * @param result - DeployResult
      */
-    private void printErrors(DeployResult result, String messageHeader)
-    {
+    private void printErrors(DeployResult result, String messageHeader) {
         DeployDetails deployDetails = result.getDetails();
 
         StringBuilder errorMessageBuilder = new StringBuilder();
@@ -182,26 +175,10 @@ public class SalesforceUtils {
 
         if (errorMessageBuilder.length() > 0) {
             errorMessageBuilder.insert(0, messageHeader);
-            System.out.println(errorMessageBuilder.toString());
+            log.error("Error when deploy: {}", errorMessageBuilder.toString());
         }
     }
 
-    private void createMetadataConnection(
-            final String username,
-            final String password,
-            final String loginUrl) throws ConnectionException {
 
-        final ConnectorConfig loginConfig = new ConnectorConfig();
-        loginConfig.setAuthEndpoint(loginUrl);
-        loginConfig.setServiceEndpoint(loginUrl);
-        loginConfig.setManualLogin(true);
-        LoginResult loginResult = (new EnterpriseConnection(loginConfig)).login(
-                username, password);
-
-        final ConnectorConfig metadataConfig = new ConnectorConfig();
-        metadataConfig.setServiceEndpoint(loginResult.getMetadataServerUrl());
-        metadataConfig.setSessionId(loginResult.getSessionId());
-        this.metadataConnection = new MetadataConnection(metadataConfig);
-    }
 
 }

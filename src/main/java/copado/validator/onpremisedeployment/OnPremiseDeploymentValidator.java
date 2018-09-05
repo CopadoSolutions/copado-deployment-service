@@ -90,7 +90,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
      * @param pathForDecompress
      * @throws Exception
      */
-    private  static void decompressZip(Path zipFile, Path pathForDecompress) throws Exception {
+    private static void decompressZip(Path zipFile, Path pathForDecompress) throws Exception {
 
         log.info("Starting to decompress zip file:'{}', into path:'{}'", zipFile, pathForDecompress);
 
@@ -115,8 +115,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
                     //else you will hit FileNotFoundException for compressed folder
                     Path parentPath = newFile.getParentFile().toPath();
                     if (!Files.exists(parentPath)) {
-                        log.info("Creating directory:'{}'", parentPath);
-                        Files.createDirectory(parentPath);
+                        (new File(parentPath.toAbsolutePath().toString())).mkdirs();
                     }
 
                     FileOutputStream fos = new FileOutputStream(newFile);
@@ -137,7 +136,6 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
 
         log.info("FINISHED! Decompressed zip file:'', into path:'{}'", zipFile, pathForDecompress);
     }
-
 
 
     /**
@@ -242,7 +240,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
 
             FileWithHash originalHashedFile = fileWithHashList.get(i);
 
-            log.debug("originalHashedFile:{}",originalHashedFile);
+            log.debug("originalHashedFile:{}", originalHashedFile);
 
             Optional<FileWithHash> actuallHashedFile = buildSHA256ForFile(dir.resolve(originalHashedFile.getPath()));
 
