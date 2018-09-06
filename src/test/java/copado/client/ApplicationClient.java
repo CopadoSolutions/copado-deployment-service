@@ -44,7 +44,7 @@ public class ApplicationClient implements Callback<String> {
 
         //Do request
         DeploymentAPI api = retrofit.create(DeploymentAPI.class);
-        Call<String> call = api.getDeploy("promote_branch","target_branch","deployment_branch","DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
+        Call<String> call = api.getDeploy("a0C0Y00000XTLeAUAX","promote_branch","target_branch","deployment_branch","DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
         call.enqueue(client);
     }
 

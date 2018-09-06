@@ -1,5 +1,6 @@
 package copado.job;
 
+import com.sun.tools.javac.comp.Check;
 import copado.service.gerrit.GerritService;
 import copado.service.salesforce.CopadoService;
 import copado.service.salesforce.SalesforceService;
@@ -37,7 +38,6 @@ public class OnPremiseDeploymentJob {
     @Autowired
     private Validator<Info> validator;
 
-
     @Autowired
     private GerritService gerritService;
 
@@ -46,7 +46,6 @@ public class OnPremiseDeploymentJob {
 
     @Autowired
     private CopadoService copadoService;
-
 
     @Async
     public void doJob(String deploymentJobId, String promoteBranch, String targetBranch, String deploymentBranch, String gerritChangeId) {
@@ -59,7 +58,7 @@ public class OnPremiseDeploymentJob {
 
             copadoService.updateDeploymentJobStatus(deploymentJobId, "Starting");
 
-            // Check if it is a valid gerrit change
+            //Check if it is a valid gerrit change
             if (!gerritService.isValidChange(gerritChangeId)) {
                 throw new Exception("Invalid gerrit promotion branch");
             }
@@ -122,7 +121,7 @@ public class OnPremiseDeploymentJob {
             }
         } catch (Exception e) {
             log.error("On premise deployment failed:", e);
-            copadoService.updateDeploymentJobStatus(deploymentJobId, "On premise deployment failed:" + e.getMessage());
+            copadoService.updateDeploymentJobStatus(deploymentJobId, "Error: " + e.getMessage());
         } finally {
             PathUtils.safeDelete(gitTMP);
             PathUtils.safeDelete(deployZipFileTMPDir);

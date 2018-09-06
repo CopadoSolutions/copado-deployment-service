@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OnPremiseDeploymentController {
 
     @Autowired
-    private OnPremiseDeploymentJob job;
+    private OnPremiseDeploymentJob onPremiseDeploymentJob;
 
     @GetMapping("deploy")
     public ResponseEntity<String> onDeploy( @RequestParam("deploymentJobId") String deploymentJobId,
@@ -23,7 +23,7 @@ public class OnPremiseDeploymentController {
                                             @RequestParam("deploymentBranch") String deploymentBranch,
                                             @RequestParam("gerritChangeId") String gerritChangeId
     ){
-        job.doJob(deploymentJobId,promoteBranch,targetBranch,deploymentBranch,gerritChangeId);
+        onPremiseDeploymentJob.doJob(deploymentJobId,promoteBranch,targetBranch,deploymentBranch,gerritChangeId);
         return new ResponseEntity<String>("Deploying...!", HttpStatus.OK);
     }
 }

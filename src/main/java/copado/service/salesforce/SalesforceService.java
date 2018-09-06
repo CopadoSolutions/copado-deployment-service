@@ -44,7 +44,11 @@ public class SalesforceService {
                 SystemProperties.ORGID_USERNAME.value(),
                 SystemProperties.ORGID_PASSWORD.value(),
                 SystemProperties.ORGID_TOKEN.value(),
-                SystemProperties.ORGID_URL.value()
+                SystemProperties.ORGID_URL.value(),
+                SystemProperties.PROXY_HOST.value(),
+                SystemProperties.PROXY_PORT.value(),
+                SystemProperties.PROXY_USERNAME.value(),
+                SystemProperties.PROXY_PASSWORD.value()
         );
     }
 
