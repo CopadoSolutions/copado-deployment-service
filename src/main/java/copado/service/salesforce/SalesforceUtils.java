@@ -1,5 +1,7 @@
 package copado.service.salesforce;
 
+import com.sforce.soap.enterprise.EnterpriseConnection;
+import com.sforce.soap.enterprise.LoginResult;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
@@ -14,7 +16,7 @@ public class SalesforceUtils {
                                                               String proxyHost, String proxyPort, String proxyUsername, String proxyPassword)
             throws ConnectionException {
 
-        return new MetadataConnection(createConfig(username, password, token, loginUrl, proxyHost, proxyPort, proxyUsername, proxyPassword));
+        return new MetadataConnection(metadata_CreateMetadataConfig(username, password, token, loginUrl, proxyHost, proxyPort, proxyUsername, proxyPassword));//, proxyHost, proxyPort, proxyUsername, proxyPassword));
     }
 
 
@@ -40,10 +42,11 @@ public class SalesforceUtils {
         }
         return config;
     }
- /*
-    private static ConnectorConfig createMetadataConfig(final String username, final String password, final String token, String loginUrl) throws ConnectionException {
 
-        LoginResult loginResult = createConnectorConfig(username, password, token, loginUrl);
+    private static ConnectorConfig metadata_CreateMetadataConfig(final String username, final String password, final String token, String loginUrl,
+                                                                 String proxyHost, String proxyPort, String proxyUsername, String proxyPassword) throws ConnectionException {
+
+        LoginResult loginResult = metadata_CreateConnectorConfig(username, password, token, loginUrl, proxyHost, proxyPort, proxyUsername, proxyPassword);
 
         final ConnectorConfig configMetadata = new ConnectorConfig();
         configMetadata.setServiceEndpoint(loginResult.getMetadataServerUrl());
@@ -52,16 +55,23 @@ public class SalesforceUtils {
         return configMetadata;
     }
 
-    private static LoginResult createConnectorConfig(final String username, final String password, final String token, String loginUrl) throws ConnectionException {
+    private static LoginResult metadata_CreateConnectorConfig(final String username, final String password, final String token, String loginUrl,
+                                                                String proxyHost, String proxyPort, String proxyUsername, String proxyPassword) throws ConnectionException {
 
         final ConnectorConfig config = new ConnectorConfig();
-        //config.setAuthEndpoint(loginUrl);
+        config.setAuthEndpoint(loginUrl);
         config.setServiceEndpoint(loginUrl);
         config.setManualLogin(true);
+        if (existProxyConfiguration(proxyUsername, proxyPassword, proxyHost)) {
+            log.info("Using Proxy for SFDC connection.");
+            config.setProxy(proxyHost, Integer.valueOf(proxyPort));
+            config.setProxyUsername(proxyUsername);
+            config.setProxyPassword(proxyPassword);
+        }
         LoginResult loginResult = (new EnterpriseConnection(config)).login(username, password + token);
         return loginResult;
     }
- */
+
 
     public static boolean existProxyConfiguration(String proxyUsername, String proxyPassword, String proxyHost) {
 
