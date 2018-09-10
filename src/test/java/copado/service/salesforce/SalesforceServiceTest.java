@@ -1,7 +1,5 @@
 package copado.service.salesforce;
 
-import org.junit.Test;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 

@@ -3,13 +3,12 @@ package copado.validator.onpremisedeployment;
 import copado.validator.Validator;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class OnPremiseDeploymentValidatorTest {
     private ClassLoader classLoader;

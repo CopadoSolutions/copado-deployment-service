@@ -1,25 +1,17 @@
 package copado.service.salesforce;
 
 
-import java.io.*;
-
-import java.rmi.RemoteException;
-
-import com.sforce.soap.metadata.AsyncResult;
-import com.sforce.soap.metadata.DeployDetails;
-import com.sforce.soap.metadata.MetadataConnection;
-import com.sforce.soap.metadata.DeployOptions;
-import com.sforce.soap.metadata.DeployResult;
-import com.sforce.soap.metadata.DeployMessage;
-import com.sforce.soap.metadata.RunTestsResult;
-import com.sforce.soap.metadata.RunTestFailure;
-import com.sforce.soap.metadata.CodeCoverageWarning;
+import com.sforce.soap.metadata.*;
 import com.sforce.ws.ConnectionException;
 import copado.util.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.rmi.RemoteException;
 
 /**
  * Deploy a zip file of metadata components.

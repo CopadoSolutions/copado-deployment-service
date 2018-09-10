@@ -5,18 +5,20 @@ import copado.util.PathUtils;
 import copado.validator.Validator;
 import copado.validator.ValidatorException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -118,14 +120,12 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
                         (new File(parentPath.toAbsolutePath().toString())).mkdirs();
                     }
 
-                    FileOutputStream fos = new FileOutputStream(newFile);
-
-                    int len;
-                    while ((len = zis.read(buffer)) > 0) {
-                        fos.write(buffer, 0, len);
+                    try ( FileOutputStream fos = new FileOutputStream(newFile) ) {
+                        int len;
+                        while ((len = zis.read(buffer)) > 0) {
+                            fos.write(buffer, 0, len);
+                        }
                     }
-
-                    fos.close();
                 }
 
                 ze = zis.getNextEntry();
@@ -153,9 +153,11 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
 
         List<Path> filesInPath;
         try {
-            filesInPath = Files.walk(path)
-                    .filter(file -> Files.isRegularFile(file))
-                    .collect(Collectors.toList());
+
+            try(Stream<Path> s = Files.walk(path)){
+                filesInPath = s.filter(file -> Files.isRegularFile(file)).collect(Collectors.toList());
+            }
+
         } catch (IOException e) {
             log.error("Could not go over directory:'{}', exception:'{}'", path, e);
             return Collections.emptyList();

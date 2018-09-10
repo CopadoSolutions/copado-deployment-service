@@ -42,11 +42,15 @@ public class AuthenticationProviderCopado implements AuthenticationProvider {
 
         AuthenticationCopado auth = (AuthenticationCopado) authentication;
 
-        if (StringUtils.isNotBlank(auth.getToken()) && isValidToken(auth.getToken())) {
-            return createValidUserWithGrants(auth.getToken());
-
+        if (auth != null) {
+            if (StringUtils.isNotBlank(auth.getToken()) && isValidToken(auth.getToken())) {
+                return createValidUserWithGrants(auth.getToken());
+            } else {
+                log.error("Authentication error for token {}", auth.getToken());
+                throw new BadCredentialsException("Invalid credentials");
+            }
         } else {
-            log.error("Authentication error for token {}", auth.getToken());
+            log.error("Authentication error for token 'null'");
             throw new BadCredentialsException("Invalid credentials");
         }
     }
@@ -79,6 +83,7 @@ public class AuthenticationProviderCopado implements AuthenticationProvider {
 
     /**
      * Check the token with the internal generator.
+     *
      * @param token
      * @return true if token and internal-generated token are the same string with <code>equals</code> method
      */

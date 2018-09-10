@@ -1,6 +1,5 @@
 package copado.job;
 
-import com.sun.tools.javac.comp.Check;
 import copado.service.gerrit.GerritService;
 import copado.service.salesforce.CopadoService;
 import copado.service.salesforce.SalesforceService;
@@ -24,6 +23,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Component
@@ -137,11 +137,12 @@ public class OnPremiseDeploymentJob {
 
 
     private static Path findDeployZipPath(Path deployBranchPath) throws Exception {
-        List<Path> zipFiles = Files
-                .walk(deployBranchPath.resolve(GIT_DEPLOY_DIR_IN_BRANCH))
-                .filter(Files::isRegularFile)
-                .filter(f -> ZIP_EXT.equalsIgnoreCase(FilenameUtils.getExtension(f.toString())))
-                .collect(Collectors.toList());
+        List<Path> zipFiles;
+        try(Stream<Path> s = Files.walk(deployBranchPath.resolve(GIT_DEPLOY_DIR_IN_BRANCH))) {
+           zipFiles = s .filter(Files::isRegularFile)
+                        .filter(f -> ZIP_EXT.equalsIgnoreCase(FilenameUtils.getExtension(f.toString())))
+                        .collect(Collectors.toList());
+        }
 
         if (zipFiles != null && zipFiles.size() == 1) {
             return zipFiles.get(0);

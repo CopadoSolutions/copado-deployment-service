@@ -18,6 +18,7 @@ public class OnPremiseDeploymentJobTest {
 
     @Test
     public void test_doJob(){
+
         job.doJob("a0C0Y00000XTLeAUAX","promote_branch","target_branch","deployment_branch","DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
     }
 

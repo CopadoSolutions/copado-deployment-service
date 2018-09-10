@@ -1,7 +1,10 @@
 package copado.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.CreateBranchCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -31,7 +34,7 @@ public class GitClientUtils {
                 log.info("Cloned repo:{}", SystemProperties.GIT_URL.value());
                 return Optional.of(call);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Exception while cloning repo:",e);
             }
         }
 
