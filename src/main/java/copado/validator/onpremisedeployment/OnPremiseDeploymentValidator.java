@@ -120,7 +120,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
                         (new File(parentPath.toAbsolutePath().toString())).mkdirs();
                     }
 
-                    try ( FileOutputStream fos = new FileOutputStream(newFile) ) {
+                    try (FileOutputStream fos = new FileOutputStream(newFile)) {
                         int len;
                         while ((len = zis.read(buffer)) > 0) {
                             fos.write(buffer, 0, len);
@@ -154,7 +154,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
         List<Path> filesInPath;
         try {
 
-            try(Stream<Path> s = Files.walk(path)){
+            try (Stream<Path> s = Files.walk(path)) {
                 filesInPath = s.filter(file -> Files.isRegularFile(file)).collect(Collectors.toList());
             }
 
