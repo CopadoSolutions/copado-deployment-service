@@ -21,7 +21,7 @@ public class OnPremiseDeploymentValidatorTest {
     private Path baseDir;
 
     @Before
-    public void beforeEachMethod(){
+    public void beforeEachMethod() {
         classLoader = getClass().getClassLoader();
         baseDir = Paths.get(classLoader.getResource(BASE_DIR).getPath());
     }
@@ -33,7 +33,7 @@ public class OnPremiseDeploymentValidatorTest {
         Path promotionDir = buildPromotionDir();
         Path zipPath = buildZipPath();
 
-        assertTrue(validator.validate(new Info(zipPath,promotionDir)));
+        assertTrue(validator.validate(new Info(zipPath, promotionDir)));
     }
 
     @Test
@@ -42,13 +42,14 @@ public class OnPremiseDeploymentValidatorTest {
         Path promotionDir = buildPromotionDir();
         Path zipPath = buildZipPath();
 
-        assertFalse(validator.validate(new Info(zipPath,promotionDir)));
+        assertFalse(validator.validate(new Info(zipPath, promotionDir)));
     }
 
-    private Path buildPromotionDir(){
+    private Path buildPromotionDir() {
         return baseDir.resolve(PROMOTION_DIR);
     }
-    private Path buildZipPath(){
+
+    private Path buildZipPath() {
         return baseDir.resolve(ZIP_FILE_PATH);
     }
 }

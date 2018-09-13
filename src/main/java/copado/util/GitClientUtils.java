@@ -18,6 +18,9 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GitClientUtils {
 
+    private GitClientUtils() {
+    }
+
     private static final String ORIGIN = "origin/";
 
 
@@ -34,7 +37,7 @@ public class GitClientUtils {
                 log.info("Cloned repo:{}", SystemProperties.GIT_URL.value());
                 return Optional.of(call);
             } catch (Exception e) {
-                log.error("Exception while cloning repo:",e);
+                log.error("Exception while cloning repo:", e);
             }
         }
 
@@ -64,7 +67,7 @@ public class GitClientUtils {
 
         log.info("Id:{} for branch:{}{}", promoteBranchRef.getObjectId(), ORIGIN, branch);
 
-        return  promoteBranchRef;
+        return promoteBranchRef;
     }
 
     public static void mergeWithBranch(Git git, Ref branchToBeMerged, String targetBranch) throws GitAPIException {

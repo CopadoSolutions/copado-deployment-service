@@ -22,9 +22,7 @@ public enum SystemProperties {
     PROXY_PASSWORD("PROXY_PASSWORD"),
     PROXY_PORT("PROXY_PORT"),
     PROXY_USERNAME("PROXY_USERNAME"),
-    RENAME_NAMESPACE("RENAME_NAMESPACE")
-    ;
-
+    RENAME_NAMESPACE("RENAME_NAMESPACE");
 
 
     private String value;

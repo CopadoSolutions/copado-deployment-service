@@ -14,7 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -39,7 +39,7 @@ public class OnPremiseDeploymentControllerTest {
     @Test
     public void onDeploy() {
         ResponseEntity<String> re = controller.onDeploy("djId", "pBranch", "tBranch", "dBranch", "gcId");
-        assertEquals(re.getBody(), "Deploying...!");
-        assertEquals(re.getStatusCode(), HttpStatus.OK);
+        assertEquals("Deploying...!", re.getBody());
+        assertEquals(HttpStatus.OK, re.getStatusCode());
     }
 }

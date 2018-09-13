@@ -6,5 +6,5 @@ import java.util.Map;
 
 @Data
 class CodeReview {
-    private Map<String,String> values;
+    private Map<String, String> values;
 }

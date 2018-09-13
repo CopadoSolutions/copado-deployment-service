@@ -10,11 +10,14 @@ import java.util.Optional;
 @Slf4j
 public class CryptoUtils {
 
-    public static Optional<String> buildSHA256(@NotNull String str){
+    private CryptoUtils() {
+    }
+
+    public static Optional<String> buildSHA256(@NotNull String str) {
         return buildSHA256(str.getBytes());
     }
 
-    public static Optional<String> buildSHA256(@NotNull byte[] bytes){
+    public static Optional<String> buildSHA256(@NotNull byte[] bytes) {
         try {
             log.info("Start building SHA256");
 
@@ -24,8 +27,8 @@ public class CryptoUtils {
             String encryptedString = DatatypeConverter.printHexBinary(digest);
 
             return Optional.of(encryptedString);
-        }catch (Exception e){
-            log.error("An error occurs while building SHA256. Error: {}",e);
+        } catch (Exception e) {
+            log.error("An error occurs while building SHA256. Error: {}", e);
             return Optional.empty();
         }
     }

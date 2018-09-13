@@ -7,10 +7,10 @@ import retrofit2.http.Query;
 public interface DeploymentAPI {
 
     @GET("copado/v1/on-premise-deployment/deploy")
-    Call<String> getDeploy( @Query("deploymentJobId") String deploymentJobId,
-                            @Query("promoteBranch") String promoteBranch,
-                            @Query("targetBranch") String targetBranch,
-                            @Query("deploymentBranch") String deploymentBranch,
-                            @Query("gerritChangeId") String gerritChangeId
+    Call<String> getDeploy(@Query("deploymentJobId") String deploymentJobId,
+                           @Query("promoteBranch") String promoteBranch,
+                           @Query("targetBranch") String targetBranch,
+                           @Query("deploymentBranch") String deploymentBranch,
+                           @Query("gerritChangeId") String gerritChangeId
     );
 }

@@ -3,6 +3,7 @@ package copado.service.salesforce;
 
 import com.sforce.soap.metadata.*;
 import com.sforce.ws.ConnectionException;
+import copado.exception.CopadoException;
 import copado.util.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,7 +12,7 @@ import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.rmi.RemoteException;
+import java.io.IOException;
 
 /**
  * Deploy a zip file of metadata components.
@@ -33,21 +34,23 @@ public class SalesforceService {
     public void init() throws ConnectionException {
 
         connection = SalesforceUtils.createMetadataConnection(
-                SystemProperties.ORGID_USERNAME.value(),
-                SystemProperties.ORGID_PASSWORD.value(),
-                SystemProperties.ORGID_TOKEN.value(),
-                SystemProperties.ORGID_URL.value(),
-                SystemProperties.PROXY_HOST.value(),
-                SystemProperties.PROXY_PORT.value(),
-                SystemProperties.PROXY_USERNAME.value(),
-                SystemProperties.PROXY_PASSWORD.value()
+                SalesforceUtilsInfo.builder()
+                        .username(SystemProperties.ORGID_USERNAME.value())
+                        .password(SystemProperties.ORGID_PASSWORD.value())
+                        .token(SystemProperties.ORGID_TOKEN.value())
+                        .loginUrl(SystemProperties.ORGID_URL.value())
+                        .proxyHost(SystemProperties.PROXY_HOST.value())
+                        .proxyPort(SystemProperties.PROXY_PORT.value())
+                        .proxyUsername(SystemProperties.PROXY_USERNAME.value())
+                        .proxyPassword(SystemProperties.PROXY_PASSWORD.value())
+                        .build()
         );
     }
 
-    public void deployZip(String zipFileAbsolutePath) throws RemoteException, Exception {
+    public void deployZip(String zipFileAbsolutePath) throws IOException, CopadoException, ConnectionException, InterruptedException {
 
-        log.info("Deploying in salesforce zip file:{}",zipFileAbsolutePath);
-        byte zipBytes[] = readZipFile(zipFileAbsolutePath);
+        log.info("Deploying in salesforce zip file:{}", zipFileAbsolutePath);
+        byte[] zipBytes = readZipFile(zipFileAbsolutePath);
         DeployOptions deployOptions = new DeployOptions();
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
@@ -64,7 +67,7 @@ public class SalesforceService {
             // double the wait time for the next iteration
             waitTimeMilliSecs *= 2;
             if (poll++ > MAX_NUM_POLL_REQUESTS) {
-                throw new Exception("Request timed out. If this is a large set " +
+                throw new CopadoException("Request timed out. If this is a large set " +
                         "of metadata components, check that the time allowed by " +
                         "MAX_NUM_POLL_REQUESTS is sufficient.");
             }
@@ -81,7 +84,7 @@ public class SalesforceService {
         while (!deployResult.isDone());
 
         if (!deployResult.isSuccess() && deployResult.getErrorStatusCode() != null) {
-            throw new Exception(deployResult.getErrorStatusCode() + " msg: " +
+            throw new CopadoException(deployResult.getErrorStatusCode() + " msg: " +
                     deployResult.getErrorMessage());
         }
 
@@ -92,7 +95,7 @@ public class SalesforceService {
 
         if (!deployResult.isSuccess()) {
             printErrors(deployResult, "Final list of failures:\n");
-            throw new Exception("The files were not successfully deployed");
+            throw new CopadoException("The files were not successfully deployed");
         }
 
         log.info("The file {} was successfully deployed", zipFileAbsolutePath);
@@ -104,11 +107,11 @@ public class SalesforceService {
      * @return byte[]
      * @throws Exception - if cannot find the zip file to deploy
      */
-    private byte[] readZipFile(String zipFileAbsolutePath) throws Exception {
+    private byte[] readZipFile(String zipFileAbsolutePath) throws CopadoException, IOException {
 
         File deployZip = new File(zipFileAbsolutePath);
         if (!deployZip.exists() || !deployZip.isFile()) {
-            throw new Exception("Cannot find the zip file to deploy. Looking for " + deployZip.getAbsolutePath());
+            throw new CopadoException("Cannot find the zip file to deploy. Looking for " + deployZip.getAbsolutePath());
         }
 
         try (FileInputStream fos = new FileInputStream(deployZip)) {
@@ -133,40 +136,8 @@ public class SalesforceService {
 
         StringBuilder errorMessageBuilder = new StringBuilder();
         if (deployDetails != null) {
-            DeployMessage[] componentFailures = deployDetails.getComponentFailures();
-            for (DeployMessage message : componentFailures) {
-                String loc = (message.getLineNumber() == 0 ? "" :
-                        ("(" + message.getLineNumber() + "," +
-                                message.getColumnNumber() + ")"));
-                if (loc.length() == 0
-                        && !message.getFileName().equals(message.getFullName())) {
-                    loc = "(" + message.getFullName() + ")";
-                }
-                errorMessageBuilder.append(message.getFileName() + loc + ":" +
-                        message.getProblem()).append('\n');
-            }
-            RunTestsResult rtr = deployDetails.getRunTestResult();
-            if (rtr.getFailures() != null) {
-                for (RunTestFailure failure : rtr.getFailures()) {
-                    String n = (failure.getNamespace() == null ? "" :
-                            (failure.getNamespace() + ".")) + failure.getName();
-                    errorMessageBuilder.append("Test failure, method: " + n + "." +
-                            failure.getMethodName() + " -- " +
-                            failure.getMessage() + " stack " +
-                            failure.getStackTrace() + "\n\n");
-                }
-            }
-            if (rtr.getCodeCoverageWarnings() != null) {
-                for (CodeCoverageWarning ccw : rtr.getCodeCoverageWarnings()) {
-                    errorMessageBuilder.append("Code coverage issue");
-                    if (ccw.getName() != null) {
-                        String n = (ccw.getNamespace() == null ? "" :
-                                (ccw.getNamespace() + ".")) + ccw.getName();
-                        errorMessageBuilder.append(", class: " + n);
-                    }
-                    errorMessageBuilder.append(" -- " + ccw.getMessage() + "\n");
-                }
-            }
+            appendErrors(errorMessageBuilder, deployDetails.getComponentFailures());
+            appendErrors(errorMessageBuilder, deployDetails.getRunTestResult());
         }
 
         if (errorMessageBuilder.length() > 0) {
@@ -175,6 +146,52 @@ public class SalesforceService {
         }
     }
 
+    private void appendErrors(StringBuilder errorMessageBuilder, DeployMessage[] componentFailures) {
+        for (DeployMessage message : componentFailures) {
+            String loc = (message.getLineNumber() == 0 ? "" :
+                    ("(" + message.getLineNumber() + "," +
+                            message.getColumnNumber() + ")"));
+            if (loc.length() == 0
+                    && !message.getFileName().equals(message.getFullName())) {
+                loc = "(" + message.getFullName() + ")";
+            }
+            errorMessageBuilder.append(message.getFileName() + loc + ":" +
+                    message.getProblem()).append('\n');
+        }
+    }
+
+    private void appendErrors(StringBuilder errorMessageBuilder, RunTestsResult rtr) {
+        if (rtr.getFailures() != null) {
+            appendErrors(errorMessageBuilder, rtr.getFailures());
+        }
+
+        if (rtr.getCodeCoverageWarnings() != null) {
+            appendErrors(errorMessageBuilder, rtr.getCodeCoverageWarnings());
+        }
+    }
+
+    private void appendErrors(StringBuilder errorMessageBuilder, RunTestFailure[] failures) {
+        for (RunTestFailure failure : failures) {
+            String n = (failure.getNamespace() == null ? "" :
+                    (failure.getNamespace() + ".")) + failure.getName();
+            errorMessageBuilder.append("Test failure, method: " + n + "." +
+                    failure.getMethodName() + " -- " +
+                    failure.getMessage() + " stack " +
+                    failure.getStackTrace() + "\n\n");
+        }
+    }
+
+    private void appendErrors(StringBuilder errorMessageBuilder, CodeCoverageWarning[] warnings) {
+        for (CodeCoverageWarning ccw : warnings) {
+            errorMessageBuilder.append("Code coverage issue");
+            if (ccw.getName() != null) {
+                String n = (ccw.getNamespace() == null ? "" :
+                        (ccw.getNamespace() + ".")) + ccw.getName();
+                errorMessageBuilder.append(", class: " + n);
+            }
+            errorMessageBuilder.append(" -- " + ccw.getMessage() + "\n");
+        }
+    }
 
 
 }

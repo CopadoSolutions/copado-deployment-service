@@ -4,13 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import javax.validation.constraints.NotNull;
-import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
 @Slf4j
 public class PathUtils {
+
+    private PathUtils() {
+    }
 
     /**
      * Returns a string with the relative path for a file within a directory.<br/>
@@ -20,23 +21,19 @@ public class PathUtils {
      * <li>returns: file1.txt</li>
      *
      * @param parentDir must be a directory
-     * @param filePath must be a regular file
+     * @param filePath  must be a regular file
      * @return relative path for filePath within parentDir directory.
      */
-    public static Optional<String> getRelativePath(@NotNull Path parentDir, @NotNull Path filePath){
+    public static Optional<String> getRelativePath(@NotNull Path parentDir, @NotNull Path filePath) {
 
-        if(Files.isDirectory(parentDir) && Files.isRegularFile(filePath)) {
-
-            String parentStr = parentDir.toAbsolutePath().toString();
-            String actualPathStr = filePath.toAbsolutePath().toString();
-
-            try{
+        if (parentDir.toFile().isDirectory() && filePath.toFile().isFile()) {
+            try {
                 Path relativePath = parentDir.relativize(filePath);
-                if(relativePath != null && !"".equals(relativePath.toString())){
+                if (relativePath != null && !"".equals(relativePath.toString())) {
                     return Optional.of(relativePath.toString());
                 }
-            }catch (Exception e){
-                log.error("Could not relativize paths:'{}', and:'{}'",parentDir,filePath);
+            } catch (Exception e) {
+                log.error("Could not relativize paths:'{}', and:'{}'", parentDir, filePath);
             }
         }
 
@@ -50,9 +47,9 @@ public class PathUtils {
      */
     public static void safeDelete(Path dir) {
         log.info("Safe deleting dir:{}", dir);
-        if (dir != null && Files.isDirectory(dir)) {
+        if (dir != null && dir.toFile().isDirectory()) {
             try {
-                FileUtils.deleteDirectory(new File(dir.toAbsolutePath().toString()));
+                FileUtils.deleteDirectory(dir.toFile());
             } catch (Exception e) {
                 log.error("Could not delete directory:'{}', exception:'{}'", dir, e);
             }

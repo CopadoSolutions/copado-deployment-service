@@ -1,5 +1,6 @@
 package copado.job;
 
+import copado.exception.CopadoException;
 import copado.service.gerrit.GerritService;
 import copado.service.salesforce.CopadoService;
 import copado.service.salesforce.SalesforceService;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -18,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -60,7 +63,7 @@ public class OnPremiseDeploymentJob {
 
             //Check if it is a valid gerrit change
             if (!gerritService.isValidChange(gerritChangeId)) {
-                throw new Exception("Invalid gerrit promotion branch");
+                throw new CopadoException("Invalid gerrit promotion branch");
             }
 
             log.info("Creating git temporal dir.");
@@ -96,7 +99,7 @@ public class OnPremiseDeploymentJob {
                 log.info("Is valid deployment:{}", isValid);
 
                 if (!isValid) {
-                    throw new Exception("Invalid deployment zip");
+                    throw new CopadoException("Invalid deployment zip");
                 }
 
                 // ············································
@@ -119,6 +122,9 @@ public class OnPremiseDeploymentJob {
                 copadoService.updateDeploymentJobStatus(deploymentJobId, "Success");
 
             }
+        } catch (CopadoException e) {
+            log.error("On premise deployment failed:", e.getMessage());
+            copadoService.updateDeploymentJobStatus(deploymentJobId, "Error: " + e.getMessage());
         } catch (Exception e) {
             log.error("On premise deployment failed:", e);
             copadoService.updateDeploymentJobStatus(deploymentJobId, "Error: " + e.getMessage());
@@ -129,25 +135,25 @@ public class OnPremiseDeploymentJob {
     }
 
 
-    private static void copyDeployZipToTemporalDir(Git git, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws Exception {
+    private static void copyDeployZipToTemporalDir(Git git, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws GitAPIException, IOException, CopadoException {
         GitClientUtils.checkout(git, deploymentBranch);
         Path deployZip = findDeployZipPath(deployBranchPath);
         FileUtils.copyFile(new File(deployZip.toAbsolutePath().toString()), new File(deployZipDest.toAbsolutePath().toString()));
     }
 
 
-    private static Path findDeployZipPath(Path deployBranchPath) throws Exception {
+    private static Path findDeployZipPath(Path deployBranchPath) throws CopadoException, IOException {
         List<Path> zipFiles;
-        try(Stream<Path> s = Files.walk(deployBranchPath.resolve(GIT_DEPLOY_DIR_IN_BRANCH))) {
-           zipFiles = s .filter(Files::isRegularFile)
-                        .filter(f -> ZIP_EXT.equalsIgnoreCase(FilenameUtils.getExtension(f.toString())))
-                        .collect(Collectors.toList());
+        try (Stream<Path> s = Files.walk(deployBranchPath.resolve(GIT_DEPLOY_DIR_IN_BRANCH))) {
+            zipFiles = s.filter(Files::isRegularFile)
+                    .filter(f -> ZIP_EXT.equalsIgnoreCase(FilenameUtils.getExtension(f.toString())))
+                    .collect(Collectors.toList());
         }
 
         if (zipFiles != null && zipFiles.size() == 1) {
             return zipFiles.get(0);
         }
 
-        throw new Exception("Could not find zip file to be deployed in deployment branch.");
+        throw new CopadoException("Could not find zip file to be deployed in deployment branch.");
     }
 }

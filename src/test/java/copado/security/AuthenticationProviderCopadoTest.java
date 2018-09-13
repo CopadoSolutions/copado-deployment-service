@@ -36,7 +36,7 @@ public class AuthenticationProviderCopadoTest {
             auth.authenticate(null);
             fail("Should throw a 'BadCredentialsException'");
         } catch (BadCredentialsException e) {
-            assertEquals(e.getMessage(), "Invalid credentials");
+            assertEquals("Invalid credentials", e.getMessage());
         }
     }
 

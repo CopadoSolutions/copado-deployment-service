@@ -12,41 +12,40 @@ import org.apache.commons.lang.StringUtils;
 @Slf4j
 public class SalesforceUtils {
 
-    public static MetadataConnection createMetadataConnection(final String username, final String password, final String token, String loginUrl,
-                                                              String proxyHost, String proxyPort, String proxyUsername, String proxyPassword)
+    private SalesforceUtils() {
+    }
+
+    public static MetadataConnection createMetadataConnection(SalesforceUtilsInfo info)
             throws ConnectionException {
 
-        return new MetadataConnection(metadata_CreateMetadataConfig(username, password, token, loginUrl, proxyHost, proxyPort, proxyUsername, proxyPassword));//, proxyHost, proxyPort, proxyUsername, proxyPassword));
+        return new MetadataConnection(createMetadataConfig(info));
     }
 
 
-    public static PartnerConnection createPartnerConnection(final String username, final String password, final String token, String loginUrl,
-                                                            String proxyHost, String proxyPort, String proxyUsername, String proxyPassword)
+    public static PartnerConnection createPartnerConnection(SalesforceUtilsInfo info)
             throws ConnectionException {
-        return new PartnerConnection(createConfig(username, password, token, loginUrl, proxyHost, proxyPort, proxyUsername, proxyPassword));
+        return new PartnerConnection(createConfig(info));
 
     }
 
 
-    private static ConnectorConfig createConfig(final String username, final String password, final String token, String loginUrl,
-                                                String proxyHost, String proxyPort, String proxyUsername, String proxyPassword) {
+    private static ConnectorConfig createConfig(SalesforceUtilsInfo info) {
         final ConnectorConfig config = new ConnectorConfig();
-        config.setUsername(username);
-        config.setPassword(password + token);
-        config.setAuthEndpoint(loginUrl);
-        if (existProxyConfiguration(proxyUsername, proxyPassword, proxyHost)) {
+        config.setUsername(info.getUsername());
+        config.setPassword(info.getPassword() + info.getToken());
+        config.setAuthEndpoint(info.getLoginUrl());
+        if (existProxyConfiguration(info.getProxyUsername(), info.getProxyPassword(), info.getProxyHost())) {
             log.info("Using Proxy for SFDC connection.");
-            config.setProxy(proxyHost, Integer.valueOf(proxyPort));
-            config.setProxyUsername(proxyUsername);
-            config.setProxyPassword(proxyPassword);
+            config.setProxy(info.getProxyHost(), Integer.valueOf(info.getProxyPort()));
+            config.setProxyUsername(info.getProxyUsername());
+            config.setProxyPassword(info.getProxyPassword());
         }
         return config;
     }
 
-    private static ConnectorConfig metadata_CreateMetadataConfig(final String username, final String password, final String token, String loginUrl,
-                                                                 String proxyHost, String proxyPort, String proxyUsername, String proxyPassword) throws ConnectionException {
+    private static ConnectorConfig createMetadataConfig(SalesforceUtilsInfo info) throws ConnectionException {
 
-        LoginResult loginResult = metadata_CreateConnectorConfig(username, password, token, loginUrl, proxyHost, proxyPort, proxyUsername, proxyPassword);
+        LoginResult loginResult = createMetadataConnectorConfig(info);
 
         final ConnectorConfig configMetadata = new ConnectorConfig();
         configMetadata.setServiceEndpoint(loginResult.getMetadataServerUrl());
@@ -55,33 +54,32 @@ public class SalesforceUtils {
         return configMetadata;
     }
 
-    private static LoginResult metadata_CreateConnectorConfig(final String username, final String password, final String token, String loginUrl,
-                                                                String proxyHost, String proxyPort, String proxyUsername, String proxyPassword) throws ConnectionException {
+    private static LoginResult createMetadataConnectorConfig(SalesforceUtilsInfo info) throws ConnectionException {
 
         final ConnectorConfig config = new ConnectorConfig();
-        config.setAuthEndpoint(loginUrl);
-        config.setServiceEndpoint(loginUrl);
+        config.setAuthEndpoint(info.getLoginUrl());
+        config.setServiceEndpoint(info.getLoginUrl());
         config.setManualLogin(true);
-        if (existProxyConfiguration(proxyUsername, proxyPassword, proxyHost)) {
+        if (existProxyConfiguration(info.getProxyUsername(), info.getProxyPassword(), info.getProxyHost())) {
             log.info("Using Proxy for SFDC connection.");
-            config.setProxy(proxyHost, Integer.valueOf(proxyPort));
-            config.setProxyUsername(proxyUsername);
-            config.setProxyPassword(proxyPassword);
+            config.setProxy(info.getProxyHost(), Integer.valueOf(info.getProxyPort()));
+            config.setProxyUsername(info.getProxyUsername());
+            config.setProxyPassword(info.getProxyPassword());
         }
-        LoginResult loginResult = (new EnterpriseConnection(config)).login(username, password + token);
-        return loginResult;
+        return (new EnterpriseConnection(config)).login(info.getUsername(), info.getPassword() + info.getToken());
     }
 
 
     public static boolean existProxyConfiguration(String proxyUsername, String proxyPassword, String proxyHost) {
 
+        boolean toReturn = false;
         if (StringUtils.isNotBlank(proxyUsername)
                 && StringUtils.isNotBlank(proxyPassword)
                 && StringUtils.isNotBlank(proxyHost)) {
 
-            return true;
+            toReturn = true;
         }
-        return false;
+        return toReturn;
     }
 
 

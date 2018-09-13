@@ -17,13 +17,13 @@ public class OnPremiseDeploymentController {
     private OnPremiseDeploymentJob onPremiseDeploymentJob;
 
     @GetMapping("deploy")
-    public ResponseEntity<String> onDeploy( @RequestParam("deploymentJobId") String deploymentJobId,
-                                            @RequestParam("promoteBranch") String promoteBranch,
-                                            @RequestParam("targetBranch") String targetBranch,
-                                            @RequestParam("deploymentBranch") String deploymentBranch,
-                                            @RequestParam("gerritChangeId") String gerritChangeId
-    ){
-        onPremiseDeploymentJob.doJob(deploymentJobId,promoteBranch,targetBranch,deploymentBranch,gerritChangeId);
-        return new ResponseEntity<String>("Deploying...!", HttpStatus.OK);
+    public ResponseEntity<String> onDeploy(@RequestParam("deploymentJobId") String deploymentJobId,
+                                           @RequestParam("promoteBranch") String promoteBranch,
+                                           @RequestParam("targetBranch") String targetBranch,
+                                           @RequestParam("deploymentBranch") String deploymentBranch,
+                                           @RequestParam("gerritChangeId") String gerritChangeId
+    ) {
+        onPremiseDeploymentJob.doJob(deploymentJobId, promoteBranch, targetBranch, deploymentBranch, gerritChangeId);
+        return new ResponseEntity<>("Deploying...!", HttpStatus.OK);
     }
 }

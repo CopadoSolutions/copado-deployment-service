@@ -14,11 +14,15 @@ import java.util.TimeZone;
 @Slf4j
 public class TokenGenerator {
 
+    private TokenGenerator() {
+    }
+
     /**
      * Looks for <code>ENDPOINT_CRYPTO_KEY</code> enviroment variable and build a token with "hour" based timestamp
+     *
      * @return generated token or empty if could not create the token.
      */
-    public static Optional<String> generateToken(){
+    public static Optional<String> generateToken() {
 
 
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -27,13 +31,13 @@ public class TokenGenerator {
         String day = String.valueOf(now.get(Calendar.DAY_OF_MONTH));
         String hour = String.valueOf(now.get(Calendar.HOUR_OF_DAY));
 
-        String timeStamp  = year + month + day + hour;
+        String timeStamp = year + month + day + hour;
 
         try {
             String tokenWithTimeStamp = SystemProperties.ENDPOINT_CRYPTO_KEY.value() + "_" + timeStamp;
             return CryptoUtils.buildSHA256(tokenWithTimeStamp);
-        }catch (Exception e){
-            log.error("An error occurs while generating token. Error: {}",e);
+        } catch (Exception e) {
+            log.error("An error occurs while generating token. Error: {}", e);
             return Optional.empty();
         }
     }

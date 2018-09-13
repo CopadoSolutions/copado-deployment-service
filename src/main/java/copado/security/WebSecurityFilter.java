@@ -16,9 +16,10 @@ import java.io.IOException;
  * Filter based on header tokens.
  */
 @Slf4j
-public class WebSecurityFilter  extends OncePerRequestFilter {
+public class WebSecurityFilter extends OncePerRequestFilter {
 
     public static final String X_FORWARDED_PROTO = "x-forwarded-proto";
+    private static final String TOKEN = "token";
 
     /**
      * Just accepts request with "token" as header or parameter. The token must be valid.
@@ -33,17 +34,15 @@ public class WebSecurityFilter  extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         // Check if it is a secure request and redirect to https if it is not.
-        if (request.getHeader(X_FORWARDED_PROTO) != null) {
-            if (request.getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
-                String pathInfo = (request.getPathInfo() != null) ? request.getPathInfo() : "";
-                response.sendRedirect("https://" + request.getServerName() + pathInfo);
-                log.info("Redirecting to https...");
-                return;
-            }
+        if (request.getHeader(X_FORWARDED_PROTO) != null && request.getHeader(X_FORWARDED_PROTO).indexOf("https") != 0) {
+            String pathInfo = (request.getPathInfo() != null) ? request.getPathInfo() : "";
+            response.sendRedirect("https://" + request.getServerName() + pathInfo);
+            log.info("Redirecting to https...");
+            return;
         }
 
         // Get user info
-        final String token = StringUtils.isNotBlank(request.getHeader("token")) ? request.getHeader("token") : request.getParameter("token");
+        final String token = StringUtils.isNotBlank(request.getHeader(TOKEN)) ? request.getHeader(TOKEN) : request.getParameter(TOKEN);
 
         log.info("Custom filter shielding mapping: {}", request.getRequestURI());
 

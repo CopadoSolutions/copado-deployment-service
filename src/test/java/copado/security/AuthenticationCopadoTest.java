@@ -1,10 +1,10 @@
 package copado.security;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class AuthenticationCopadoTest {
 
@@ -27,7 +27,7 @@ public class AuthenticationCopadoTest {
 
     @Test
     public void getToken() {
-        assertEquals(auth.getToken(), "TOKEN");
+        assertEquals("TOKEN", auth.getToken());
     }
 
     @Test

@@ -1,9 +1,9 @@
 package copado.validator.onpremisedeployment;
 
+import copado.exception.CopadoException;
 import copado.util.CryptoUtils;
 import copado.util.PathUtils;
 import copado.validator.Validator;
-import copado.validator.ValidatorException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.stereotype.Service;
@@ -68,7 +68,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
             String extension = FilenameUtils.getExtension(zipFile.toString());
 
             if (!ZIP_EXTENSION.equalsIgnoreCase(extension)) {
-                throw new ValidatorException(String.format("Wrong extension for zip file:'%s'", zipFile.toAbsolutePath()));
+                throw new CopadoException(String.format("Wrong extension for zip file:'%s'", zipFile.toAbsolutePath()));
             }
 
             tmpDir = Files.createTempDirectory(TEMP);
@@ -76,6 +76,10 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
 
             log.info("FINISHED to decompress zip:'{}', temporal directory created:'{}'", zipFile, tmpDir);
             return Optional.of(tmpDir);
+
+        } catch (CopadoException e) {
+            log.error("Could not create temporal directory on:'{}', exception:'{}'", TEMP, e.getMessage());
+            PathUtils.safeDelete(tmpDir);
 
         } catch (Exception e) {
             log.error("Could not create temporal directory on:'{}', exception:'{}'", TEMP, e);
@@ -92,7 +96,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
      * @param pathForDecompress
      * @throws Exception
      */
-    private static void decompressZip(Path zipFile, Path pathForDecompress) throws Exception {
+    private static void decompressZip(Path zipFile, Path pathForDecompress) throws IOException {
 
         log.info("Starting to decompress zip file:'{}', into path:'{}'", zipFile, pathForDecompress);
 
@@ -116,8 +120,8 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
                     //create all non exists folders
                     //else you will hit FileNotFoundException for compressed folder
                     Path parentPath = newFile.getParentFile().toPath();
-                    if (!Files.exists(parentPath)) {
-                        (new File(parentPath.toAbsolutePath().toString())).mkdirs();
+                    if (parentPath.toFile().exists()) {
+                        parentPath.toFile().mkdirs();
                     }
 
                     try (FileOutputStream fos = new FileOutputStream(newFile)) {
@@ -155,7 +159,7 @@ public class OnPremiseDeploymentValidator implements Validator<Info> {
         try {
 
             try (Stream<Path> s = Files.walk(path)) {
-                filesInPath = s.filter(file -> Files.isRegularFile(file)).collect(Collectors.toList());
+                filesInPath = s.filter(p -> p.toFile().isFile()).collect(Collectors.toList());
             }
 
         } catch (IOException e) {

@@ -3,6 +3,7 @@ package copado.service.gerrit;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import copado.exception.CopadoException;
 import copado.util.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -18,11 +19,10 @@ import javax.annotation.PostConstruct;
 @Slf4j
 public class GerritService {
 
-    private Retrofit connection;
     private GerritAPI api;
 
     @PostConstruct
-    public void init(){
+    public void init() {
 
         OkHttpClient.Builder builder = new OkHttpClient().newBuilder().addInterceptor(new GerritBasicAuthInterceptor());
 
@@ -30,44 +30,46 @@ public class GerritService {
         Gson gson = new GsonBuilder().setLenient().create();
 
         //Create connection
-        connection = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(gson)).baseUrl(SystemProperties.GERRIT_ENDPOINT.value()).client(builder.build()).build();
+        Retrofit connection = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(gson)).baseUrl(SystemProperties.GERRIT_ENDPOINT.value()).client(builder.build()).build();
         api = connection.create(GerritAPI.class);
     }
 
     public boolean isValidChange(String changeId) {
 
-        log.info("Checking if chage-id:'{}' is valid.",changeId);
+        log.info("Checking if chage-id:'{}' is valid.", changeId);
         Call<Change> call = api.getChangeDetail(changeId);
         try {
             Response<Change> response = call.execute();
 
-            if(!response.isSuccessful()){
-                throw new Exception("Response is not successful.");
+            if (!response.isSuccessful()) {
+                throw new CopadoException("Response is not successful.");
             }
 
             log.info("Response: ");
 
 
             Change change = response.body();
-            if(change.getLabels() == null) {
-                throw new Exception("Gerrit change does not have labels. Change id:"+changeId);
+            if (change.getLabels() == null) {
+                throw new CopadoException("Gerrit change does not have labels. Change id:" + changeId);
             }
 
-            if(change.getLabels().getCodeReview() == null) {
-                throw new Exception("Gerrit labels for change does not have Code-Review. Change id:"+changeId);
+            if (change.getLabels().getCodeReview() == null) {
+                throw new CopadoException("Gerrit labels for change does not have Code-Review. Change id:" + changeId);
             }
 
-            if(change.getLabels().getCodeReview().getValues() == null) {
-                throw new Exception("Gerrit Code-Review for change label does not have values. Change id:"+changeId);
+            if (change.getLabels().getCodeReview().getValues() == null) {
+                throw new CopadoException("Gerrit Code-Review for change label does not have values. Change id:" + changeId);
             }
 
             String verifiedStr = change.getLabels().getCodeReview().getValues().get("+2");
 
-            log.info("Change '{}' verified:'{}'",changeId,verifiedStr);
+            log.info("Change '{}' verified:'{}'", changeId, verifiedStr);
             return verifiedStr != null;
 
+        } catch (CopadoException e) {
+            log.error("Could not retrieve Gerrit change:'{}'. Error:", changeId, e.getMessage());
         } catch (Exception e) {
-            log.error("Could not retrieve Gerrit change:'{}'. Error:",changeId,e);
+            log.error("Could not retrieve Gerrit change:'{}'. Error:", changeId, e);
         }
         return false;
     }
