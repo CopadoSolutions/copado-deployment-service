@@ -1,16 +1,12 @@
 package copado.client;
 
+import copado.controller.DeployRequest;
 import retrofit2.Call;
-import retrofit2.http.GET;
-import retrofit2.http.Query;
+import retrofit2.http.Body;
+import retrofit2.http.POST;
 
 public interface DeploymentAPI {
 
-    @GET("copado/v1/on-premise-deployment/deploy")
-    Call<String> getDeploy(@Query("deploymentJobId") String deploymentJobId,
-                           @Query("promoteBranch") String promoteBranch,
-                           @Query("targetBranch") String targetBranch,
-                           @Query("deploymentBranch") String deploymentBranch,
-                           @Query("gerritChangeId") String gerritChangeId
-    );
+    @POST("copado/onpremise/v1/deployment/deploy")
+    Call<String> getDeploy(@Body DeployRequest deployRequest);
 }

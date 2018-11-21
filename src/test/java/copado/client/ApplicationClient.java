@@ -3,6 +3,7 @@ package copado.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import copado.controller.DeployRequest;
 import copado.security.TokenGenerator;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -46,8 +47,18 @@ public class ApplicationClient implements Callback<String> {
         ApplicationClient client = new ApplicationClient();
 
         //Do request
+        DeployRequest request = new DeployRequest();
+        request.setDeploymentJobId("a0C0Y00000XTLeAUAX");
+        request.setPromoteBranch("promote_branch");
+        request.setTargetBranch("target_branch");
+        request.setDeploymentBranch("deployment_branch");
+        request.setDeploymentJobId("DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
+        request.setCopadoJobId("TEST_COPADO_JOB_ID");
+        request.setOrgDestId("ORG_ID_DEST");
+
+
         DeploymentAPI api = retrofit.create(DeploymentAPI.class);
-        Call<String> call = api.getDeploy("a0C0Y00000XTLeAUAX", "promote_branch", "target_branch", "deployment_branch", "DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
+        Call<String> call = api.getDeploy(request);
         call.enqueue(client);
     }
 

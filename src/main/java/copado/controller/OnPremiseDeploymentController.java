@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/copado/v1/on-premise-deployment/")
+@RequestMapping("/copado/onpremise/v1/deployment/")
 public class OnPremiseDeploymentController {
 
     @Autowired
