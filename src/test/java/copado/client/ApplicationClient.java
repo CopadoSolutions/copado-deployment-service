@@ -1,13 +1,18 @@
 package copado.client;
 
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import copado.controller.DeployRequest;
-import copado.security.TokenGenerator;
+import copado.onpremise.Application;
+import copado.onpremise.controller.DeployRequest;
+import copado.onpremise.security.TokenGenerator;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.context.junit4.SpringRunner;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -15,13 +20,16 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
+@RunWith(SpringRunner.class)
+@ComponentScan(basePackages = {"copado.onpremise"})
+@SpringBootTest(classes = Application.class)
 public class ApplicationClient implements Callback<String> {
 
     @Autowired
     private TokenGenerator tokenGenerator;
 
-    //TODO: Spring-run
-    public void main(String[] args) {
+    @Test
+    public void doTest() {
 
         //Create token
         String token = tokenGenerator.generateToken().get();
@@ -47,11 +55,11 @@ public class ApplicationClient implements Callback<String> {
 
         //Do request
         DeployRequest request = new DeployRequest();
-        request.setDeploymentJobId("a0C0Y00000XTLeAUAX");
+        // TODO: Edit here with your custom test values
+        request.setDeploymentJobId("a0C1n00001EDt6N"); // Check a deployment-step (from there you can reach the deployment-job-id)
         request.setPromoteBranch("promote_branch");
         request.setTargetBranch("target_branch");
         request.setDeploymentBranch("deployment_branch");
-        request.setDeploymentJobId("DMD_Test~master~I294fb4a0a5cea1cb55026d21e6045140b230acfa");
         request.setCopadoJobId("TEST_COPADO_JOB_ID");
         request.setOrgDestId("ORG_ID_DEST");
 
