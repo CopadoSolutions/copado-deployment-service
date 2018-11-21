@@ -1,8 +1,10 @@
 package copado.job;
 
 import com.sforce.soap.metadata.MetadataConnection;
+import com.sforce.ws.ConnectionException;
 import copado.controller.DeployRequest;
 import copado.exception.CopadoException;
+import copado.service.file.PathService;
 import copado.service.git.Branch;
 import copado.service.git.GitService;
 import copado.service.git.GitSession;
@@ -11,7 +13,6 @@ import copado.service.salesforce.MetadataConnectionService;
 import copado.service.salesforce.SalesforceService;
 import copado.service.validation.ValidationResult;
 import copado.service.validation.ValidationService;
-import copado.service.file.PathService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -66,57 +67,19 @@ public class OnPremiseDeploymentJob {
         try {
 
             copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Starting on premise deployment job task");
+            gitTMP = createTemporalGitPath();
+            deployZipFileTMPDir = createTemporalDeployZipPath();
 
-            log.info("Creating git temporal dir.");
-            gitTMP = Files.createTempDirectory(TEMP_GIT);
-            log.info("Created temporal dir:'{}'", gitTMP);
 
             GitSession git = gitService.cloneRepo(gitTMP);
-            // ············································
-            // Retrieving GIT info
-            // ············································
-            log.info("Repository correctly cloned.");
+            downloadAllBranches(request, git);
+            Path deployZipFileTMP = copyDeployZipToTemporalDir(request, gitTMP, deployZipFileTMPDir, git);
 
-            // Donwload all branch changes needed
-            gitService.cloneBranchFromRepo(git, request.getPromoteBranch());
-            gitService.cloneBranchFromRepo(git, request.getTargetBranch());
-            gitService.cloneBranchFromRepo(git, request.getDeploymentBranch());
+            validatePromoteBranch(request, gitTMP, git, deployZipFileTMP);
 
-            // Copy deploy zip to temporal dir
-            deployZipFileTMPDir = Files.createTempDirectory(TEMP_DEPLOY);
-            Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
-            copyDeployZipToTemporalDir(git, request.getDeploymentBranch(), gitTMP, deployZipFileTMP);
+            deployZip(request, deployZipFileTMP);
 
-            // ············································
-            // Validate promote-branch with deploy zip
-            // ············································
-            gitService.checkout(git, request.getPromoteBranch());
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Validating deployment zip with promotion branch.");
-
-            ValidationResult validationResult = validationService.validate(deployZipFileTMP, gitTMP);
-            log.info("Finished validation. Success: {}, Code: {}, Message: {}", validationResult.isSuccess(), validationResult.getCode(), validationResult.getMessage());
-
-            if (!validationResult.isSuccess()) {
-                throw new CopadoException("Invalid deployment zip. Code: " + validationResult.getCode() + ". Message: " + validationResult.getMessage());
-            }
-
-            // ············································
-            // Merge to target branch, commit and push
-            // ············································
-
-            // Deploy with salesforce
-            MetadataConnection mc = metadataConnectionService.build(request.getOrgDestId());
-            salesforceService.deployZip(mc, deployZipFileTMP.toAbsolutePath().toString());
-
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
-
-            // Checkout target_branch
-            gitService.checkout(git, request.getTargetBranch());
-
-            // Commit changes on git
-            Branch promoteBranchRef = gitService.getBranch(git, request.getPromoteBranch());
-            gitService.mergeWithBranch(git, promoteBranchRef, request.getTargetBranch());
-            gitService.push(git);
+            mergeAndPushDeployment(request, git);
 
             copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Success");
 
@@ -131,6 +94,58 @@ public class OnPremiseDeploymentJob {
             pathService.safeDelete(gitTMP);
             pathService.safeDelete(deployZipFileTMPDir);
         }
+    }
+
+    private void mergeAndPushDeployment(DeployRequest request, GitSession git) throws CopadoException {
+        // Checkout target_branch
+        gitService.checkout(git, request.getTargetBranch());
+
+        // Commit changes on git
+        Branch promoteBranchRef = gitService.getBranch(git, request.getPromoteBranch());
+        gitService.mergeWithBranch(git, promoteBranchRef, request.getTargetBranch());
+        gitService.push(git);
+    }
+
+    private void deployZip(DeployRequest request, Path deployZipFileTMP) throws ConnectionException, IOException, CopadoException, InterruptedException {
+        MetadataConnection mc = metadataConnectionService.build(request.getOrgDestId());
+        salesforceService.deployZip(mc, deployZipFileTMP.toAbsolutePath().toString());
+
+        copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
+    }
+
+    private Path createTemporalDeployZipPath() throws IOException {
+        return Files.createTempDirectory(TEMP_DEPLOY);
+    }
+
+    private Path copyDeployZipToTemporalDir(DeployRequest request, Path gitTMP, Path deployZipFileTMPDir, GitSession git) throws IOException, CopadoException {
+        Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
+        copyDeployZipToTemporalDir(git, request.getDeploymentBranch(), gitTMP, deployZipFileTMP);
+        return deployZipFileTMP;
+    }
+
+    private void validatePromoteBranch(DeployRequest request, Path gitTMP, GitSession git, Path deployZipFileTMP) throws CopadoException {
+        gitService.checkout(git, request.getPromoteBranch());
+        copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Validating deployment zip with promotion branch.");
+
+        ValidationResult validationResult = validationService.validate(deployZipFileTMP, gitTMP);
+        log.info("Finished validation. Success: {}, Code: {}, Message: {}", validationResult.isSuccess(), validationResult.getCode(), validationResult.getMessage());
+
+        if (!validationResult.isSuccess()) {
+            throw new CopadoException("Invalid deployment zip. Code: " + validationResult.getCode() + ". Message: " + validationResult.getMessage());
+        }
+    }
+
+    private void downloadAllBranches(DeployRequest request, GitSession git) throws CopadoException {
+        gitService.cloneBranchFromRepo(git, request.getPromoteBranch());
+        gitService.cloneBranchFromRepo(git, request.getTargetBranch());
+        gitService.cloneBranchFromRepo(git, request.getDeploymentBranch());
+    }
+
+    private Path createTemporalGitPath() throws IOException {
+        log.info("Creating git temporal dir.");
+        Path gitTMP = Files.createTempDirectory(TEMP_GIT);
+        log.info("Created temporal dir:'{}'", gitTMP);
+        return gitTMP;
     }
 
     private String buildErrorStatus(Throwable e) {

@@ -6,6 +6,7 @@ import com.google.gson.GsonBuilder;
 import copado.security.TokenGenerator;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.springframework.beans.factory.annotation.Autowired;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -15,11 +16,14 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ApplicationClient implements Callback<String> {
 
+    @Autowired
+    private TokenGenerator tokenGenerator;
 
-    public static void main(String[] args) {
+    //TODO: Spring-run
+    public void main(String[] args) {
 
         //Create token
-        String token = TokenGenerator.generateToken().get();
+        String token = tokenGenerator.generateToken().get();
         System.out.println("Generated token : " + token);
 
         //Set headers for all requests

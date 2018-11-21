@@ -42,6 +42,7 @@ class GitServiceImpl implements GitService {
                 log.info("Cloned repo:{}", config.getGitUrl());
                 GitSessionImpl gitSession = ctx.getBean(GitSessionImpl.class);
                 gitSession.setGit(call);
+                log.info("Repository cloned!");
                 return gitSession;
 
             } catch (Exception e) {

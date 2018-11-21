@@ -1,33 +1,30 @@
 package copado.security;
 
-import org.junit.Before;
+import copado.ApplicationConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.Mock;
 import org.powermock.modules.junit4.PowerMockRunner;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 
 import static org.junit.Assert.*;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(SystemProperties.class)
 public class AuthenticationProviderCopadoTest {
 
     private AuthenticationProviderCopado auth = new AuthenticationProviderCopado();
 
-    private SystemProperties systemProperties;
+    @Mock
+    private ApplicationConfiguration applicationConfiguration;
 
-    @Before
-    public void setUp() {
-        systemProperties = Mockito.mock(SystemProperties.class);
-    }
-
+    @Autowired
+    private TokenGenerator tokenGenerator;
 
     @Test
     public void test_authenticate() {
-        AuthenticationCopado authCopado = new AuthenticationCopado(TokenGenerator.generateToken().get());
+        AuthenticationCopado authCopado = new AuthenticationCopado(tokenGenerator.generateToken().get());
 
         assertNotNull(auth.authenticate(authCopado));
 
