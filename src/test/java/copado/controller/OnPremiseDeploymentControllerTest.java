@@ -1,7 +1,7 @@
 package copado.controller;
 
 import copado.job.OnPremiseDeploymentJob;
-import copado.service.gerrit.GerritService;
+import copado.service.validation.ValidationService;
 import copado.service.salesforce.CopadoService;
 import copado.service.salesforce.SalesforceService;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class OnPremiseDeploymentControllerTest {
     private OnPremiseDeploymentJob onPremiseDeploymentJob;
 
     @MockBean
-    private GerritService gerritService;
+    private ValidationService validationService;
 
     @MockBean
     private CopadoService copadoService;

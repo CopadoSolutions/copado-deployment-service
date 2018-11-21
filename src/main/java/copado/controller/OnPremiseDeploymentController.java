@@ -4,10 +4,7 @@ import copado.job.OnPremiseDeploymentJob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/copado/v1/on-premise-deployment/")
@@ -16,14 +13,10 @@ public class OnPremiseDeploymentController {
     @Autowired
     private OnPremiseDeploymentJob onPremiseDeploymentJob;
 
-    @GetMapping("deploy")
-    public ResponseEntity<String> onDeploy(@RequestParam("deploymentJobId") String deploymentJobId,
-                                           @RequestParam("promoteBranch") String promoteBranch,
-                                           @RequestParam("targetBranch") String targetBranch,
-                                           @RequestParam("deploymentBranch") String deploymentBranch,
-                                           @RequestParam("gerritChangeId") String gerritChangeId
+    @PostMapping("deploy")
+    public ResponseEntity<String> onDeploy(@RequestBody DeployRequest request
     ) {
-        onPremiseDeploymentJob.doJob(deploymentJobId, promoteBranch, targetBranch, deploymentBranch, gerritChangeId);
+        onPremiseDeploymentJob.doJob(request);
         return new ResponseEntity<>("Deploying...!", HttpStatus.OK);
     }
 }
