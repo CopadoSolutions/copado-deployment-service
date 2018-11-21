@@ -34,7 +34,6 @@ public class ApplicationClient implements Callback<String> {
             return chain.proceed(request);
         });
 
-
         //Set lenient to the builder
         Gson gson = new GsonBuilder()
                 .setLenient()
