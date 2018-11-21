@@ -38,7 +38,14 @@ public class OnPremiseDeploymentControllerTest {
 
     @Test
     public void onDeploy() {
-        ResponseEntity<String> re = controller.onDeploy("djId", "pBranch", "tBranch", "dBranch", "gcId");
+        DeployRequest deployRequest = new DeployRequest();
+        deployRequest.setCopadoJobId("copadoJobIdTest");
+        deployRequest.setPromoteBranch("pBranch");
+        deployRequest.setDeploymentBranch("dBranch");
+        deployRequest.setTargetBranch("tBranch");
+        deployRequest.setDeploymentJobId("djId");
+
+        ResponseEntity<String> re = controller.onDeploy(deployRequest);
         assertEquals("Deploying...!", re.getBody());
         assertEquals(HttpStatus.OK, re.getStatusCode());
     }

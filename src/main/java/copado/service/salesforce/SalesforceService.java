@@ -2,6 +2,7 @@ package copado.service.salesforce;
 
 
 import com.sforce.soap.metadata.*;
+import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 import copado.exception.CopadoException;
 import copado.util.SystemProperties;
@@ -23,7 +24,8 @@ import java.io.IOException;
 @Slf4j
 public class SalesforceService {
     // binding for the metadata WSDL used for making metadata API calls
-    private MetadataConnection connection;
+    private MetadataConnection metadataConnection;
+    private PartnerConnection partnerConnection;
 
     // one second in milliseconds
     private static final long ONE_SECOND = 1000;
@@ -33,18 +35,20 @@ public class SalesforceService {
     @PostConstruct
     public void init() throws ConnectionException {
 
-        connection = SalesforceUtils.createMetadataConnection(
-                SalesforceUtilsInfo.builder()
-                        .username(SystemProperties.ORGID_USERNAME.value())
-                        .password(SystemProperties.ORGID_PASSWORD.value())
-                        .token(SystemProperties.ORGID_TOKEN.value())
-                        .loginUrl(SystemProperties.ORGID_URL.value())
-                        .proxyHost(SystemProperties.PROXY_HOST.value())
-                        .proxyPort(SystemProperties.PROXY_PORT.value())
-                        .proxyUsername(SystemProperties.PROXY_USERNAME.value())
-                        .proxyPassword(SystemProperties.PROXY_PASSWORD.value())
-                        .build()
-        );
+        SalesforceUtilsInfo sfLoginInfo = SalesforceUtilsInfo.builder()
+                .username(SystemProperties.ORGID_USERNAME.value())
+                .password(SystemProperties.ORGID_PASSWORD.value())
+                .token(SystemProperties.ORGID_TOKEN.value())
+                .loginUrl(SystemProperties.ORGID_URL.value())
+                .proxyHost(SystemProperties.PROXY_HOST.value())
+                .proxyPort(SystemProperties.PROXY_PORT.value())
+                .proxyUsername(SystemProperties.PROXY_USERNAME.value())
+                .proxyPassword(SystemProperties.PROXY_PASSWORD.value())
+                .build();
+
+        partnerConnection = SalesforceUtils.createPartnerConnection(sfLoginInfo);
+
+        metadataConnection = SalesforceUtils.createMetadataConnection(sfLoginInfo, partnerConnection);
     }
 
     public void deployZip(String zipFileAbsolutePath) throws IOException, CopadoException, ConnectionException, InterruptedException {
@@ -54,7 +58,7 @@ public class SalesforceService {
         DeployOptions deployOptions = new DeployOptions();
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
-        AsyncResult asyncResult = connection.deploy(zipBytes, deployOptions);
+        AsyncResult asyncResult = metadataConnection.deploy(zipBytes, deployOptions);
         String asyncResultId = asyncResult.getId();
 
         // Wait for the deploy to complete
@@ -74,7 +78,7 @@ public class SalesforceService {
 
             // Fetch in-progress details once for every 3 polls
             fetchDetails = (poll % 3 == 0);
-            deployResult = connection.checkDeployStatus(asyncResultId, fetchDetails);
+            deployResult = metadataConnection.checkDeployStatus(asyncResultId, fetchDetails);
 
             log.info("Status is: {}", deployResult.getStatus());
             if (!deployResult.isDone() && fetchDetails) {
@@ -90,7 +94,7 @@ public class SalesforceService {
 
         if (!fetchDetails) {
             // Get the final result with details if we didn't do it in the last attempt.
-            deployResult = connection.checkDeployStatus(asyncResultId, true);
+            deployResult = metadataConnection.checkDeployStatus(asyncResultId, true);
         }
 
         if (!deployResult.isSuccess()) {

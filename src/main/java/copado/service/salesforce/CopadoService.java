@@ -22,10 +22,10 @@ public class CopadoService {
 
         connection = SalesforceUtils.createPartnerConnection(
                 SalesforceUtilsInfo.builder()
-                        .username(SystemProperties.ORGID_USERNAME.value())
-                        .password(SystemProperties.ORGID_PASSWORD.value())
-                        .token(SystemProperties.ORGID_TOKEN.value())
-                        .loginUrl(SystemProperties.ORGID_URL.value())
+                        .username(SystemProperties.COPADO_USERNAME.value())
+                        .password(SystemProperties.COPADO_PASSWORD.value())
+                        .token(SystemProperties.COPADO_TOKEN.value())
+                        .loginUrl(SystemProperties.COPADO_URL.value())
                         .proxyHost(SystemProperties.PROXY_HOST.value())
                         .proxyPort(SystemProperties.PROXY_PORT.value())
                         .proxyUsername(SystemProperties.PROXY_USERNAME.value())

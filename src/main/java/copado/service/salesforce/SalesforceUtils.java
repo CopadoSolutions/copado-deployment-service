@@ -1,7 +1,5 @@
 package copado.service.salesforce;
 
-import com.sforce.soap.enterprise.EnterpriseConnection;
-import com.sforce.soap.enterprise.LoginResult;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
@@ -15,15 +13,12 @@ public class SalesforceUtils {
     private SalesforceUtils() {
     }
 
-    public static MetadataConnection createMetadataConnection(SalesforceUtilsInfo info)
-            throws ConnectionException {
-
-        return new MetadataConnection(createMetadataConfig(info));
+    public static MetadataConnection createMetadataConnection(SalesforceUtilsInfo info, PartnerConnection pc) throws ConnectionException {
+        return new MetadataConnection(createMetadataConnectorConfig(info, pc.getConfig().getSessionId()));
     }
 
 
-    public static PartnerConnection createPartnerConnection(SalesforceUtilsInfo info)
-            throws ConnectionException {
+    public static PartnerConnection createPartnerConnection(SalesforceUtilsInfo info) throws ConnectionException {
         return new PartnerConnection(createConfig(info));
 
     }
@@ -43,22 +38,12 @@ public class SalesforceUtils {
         return config;
     }
 
-    private static ConnectorConfig createMetadataConfig(SalesforceUtilsInfo info) throws ConnectionException {
-
-        LoginResult loginResult = createMetadataConnectorConfig(info);
-
-        final ConnectorConfig configMetadata = new ConnectorConfig();
-        configMetadata.setServiceEndpoint(loginResult.getMetadataServerUrl());
-        configMetadata.setSessionId(loginResult.getSessionId());
-
-        return configMetadata;
-    }
-
-    private static LoginResult createMetadataConnectorConfig(SalesforceUtilsInfo info) throws ConnectionException {
+    private static ConnectorConfig createMetadataConnectorConfig(SalesforceUtilsInfo info, String sessionId) {
 
         final ConnectorConfig config = new ConnectorConfig();
         config.setAuthEndpoint(info.getLoginUrl());
-        config.setServiceEndpoint(info.getLoginUrl());
+        config.setServiceEndpoint(info.getLoginUrl().replace("/services/Soap/u/", "/services/Soap/m/"));
+        config.setSessionId(sessionId);
         config.setManualLogin(true);
         if (existProxyConfiguration(info.getProxyUsername(), info.getProxyPassword(), info.getProxyHost())) {
             log.info("Using Proxy for SFDC connection.");
@@ -66,9 +51,8 @@ public class SalesforceUtils {
             config.setProxyUsername(info.getProxyUsername());
             config.setProxyPassword(info.getProxyPassword());
         }
-        return (new EnterpriseConnection(config)).login(info.getUsername(), info.getPassword() + info.getToken());
+        return config;
     }
-
 
     public static boolean existProxyConfiguration(String proxyUsername, String proxyPassword, String proxyHost) {
 
