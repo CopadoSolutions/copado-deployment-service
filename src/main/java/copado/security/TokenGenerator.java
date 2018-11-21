@@ -1,8 +1,9 @@
 package copado.security;
 
-import copado.util.CryptoUtils;
-import copado.util.SystemProperties;
+import copado.ApplicationConfiguration;
+import copado.service.crypto.CryptoService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Calendar;
 import java.util.Optional;
@@ -14,15 +15,15 @@ import java.util.TimeZone;
 @Slf4j
 public class TokenGenerator {
 
-    private TokenGenerator() {
-    }
+    @Autowired
+    private ApplicationConfiguration config;
 
     /**
      * Looks for <code>ENDPOINT_CRYPTO_KEY</code> enviroment variable and build a token with "hour" based timestamp
      *
      * @return generated token or empty if could not create the token.
      */
-    public static Optional<String> generateToken() {
+    public Optional<String> generateToken() {
 
 
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
@@ -34,8 +35,8 @@ public class TokenGenerator {
         String timeStamp = year + month + day + hour;
 
         try {
-            String tokenWithTimeStamp = SystemProperties.ENDPOINT_CRYPTO_KEY.value() + "_" + timeStamp;
-            return CryptoUtils.buildSHA256(tokenWithTimeStamp);
+            String tokenWithTimeStamp = config.getSecret() + "_" + timeStamp;
+            return CryptoService.buildSHA256(tokenWithTimeStamp);
         } catch (Exception e) {
             log.error("An error occurs while generating token. Error: {}", e);
             return Optional.empty();

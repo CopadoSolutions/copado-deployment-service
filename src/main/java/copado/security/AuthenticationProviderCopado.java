@@ -2,6 +2,7 @@ package copado.security;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +22,9 @@ import java.util.Optional;
 @Component
 @Slf4j
 public class AuthenticationProviderCopado implements AuthenticationProvider {
+
+    @Autowired
+    private TokenGenerator tokenGenerator;
 
     /**
      * <b>Description</b>
@@ -87,7 +91,7 @@ public class AuthenticationProviderCopado implements AuthenticationProvider {
      * @return true if token and internal-generated token are the same string with <code>equals</code> method
      */
     private boolean isValidToken(String token) {
-        Optional<String> generatedToken = TokenGenerator.generateToken();
+        Optional<String> generatedToken = tokenGenerator.generateToken();
         return generatedToken.isPresent() && generatedToken.get().equals(token);
     }
 

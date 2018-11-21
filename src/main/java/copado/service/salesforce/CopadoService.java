@@ -4,9 +4,10 @@ import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
+import copado.ApplicationConfiguration;
 import copado.exception.CopadoException;
-import copado.util.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -17,19 +18,22 @@ public class CopadoService {
 
     private PartnerConnection connection;
 
+    @Autowired
+    private ApplicationConfiguration conf;
+
     @PostConstruct
     public void init() throws ConnectionException {
 
         connection = SalesforceUtils.createPartnerConnection(
                 SalesforceUtilsInfo.builder()
-                        .username(SystemProperties.COPADO_USERNAME.value())
-                        .password(SystemProperties.COPADO_PASSWORD.value())
-                        .token(SystemProperties.COPADO_TOKEN.value())
-                        .loginUrl(SystemProperties.COPADO_URL.value())
-                        .proxyHost(SystemProperties.PROXY_HOST.value())
-                        .proxyPort(SystemProperties.PROXY_PORT.value())
-                        .proxyUsername(SystemProperties.PROXY_USERNAME.value())
-                        .proxyPassword(SystemProperties.PROXY_PASSWORD.value())
+                        .username(conf.getCopadoUsername())
+                        .password(conf.getCopadoPassword())
+                        .token(conf.getCopadoToken())
+                        .loginUrl(conf.getCopadoUrl())
+                        .proxyHost(conf.getProxyHost())
+                        .proxyPort(conf.getProxyPort())
+                        .proxyUsername(conf.getProxyUsername())
+                        .proxyPassword(conf.getProxyPassword())
                         .build()
         );
     }
@@ -63,8 +67,8 @@ public class CopadoService {
     }
 
 
-    private static String getNamespace() {
-        String ns = SystemProperties.RENAME_NAMESPACE.value();
+    private String getNamespace() {
+        String ns = conf.getRenameNamespace();
         return ns != null ? ns : "copado__";
     }
 

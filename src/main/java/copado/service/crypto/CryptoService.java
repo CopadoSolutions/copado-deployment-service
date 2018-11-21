@@ -1,4 +1,4 @@
-package copado.util;
+package copado.service.crypto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -8,9 +8,9 @@ import java.security.MessageDigest;
 import java.util.Optional;
 
 @Slf4j
-public class CryptoUtils {
+public class CryptoService {
 
-    private CryptoUtils() {
+    private CryptoService() {
     }
 
     public static Optional<String> buildSHA256(@NotNull String str) {

@@ -1,6 +1,6 @@
 package copado.service.git;
 
-import copado.util.SystemProperties;
+import copado.ApplicationConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -22,6 +22,9 @@ import java.util.stream.Collectors;
 class GitServiceImpl implements GitService {
 
     @Autowired
+    private ApplicationConfiguration config;
+
+    @Autowired
     private ApplicationContext ctx;
 
     private static final String ORIGIN = "origin/";
@@ -30,13 +33,13 @@ class GitServiceImpl implements GitService {
     public GitSession cloneRepo(Path temporalDir) throws GitServiceException {
         if (temporalDir != null) {
             CloneCommand cloneCommand = Git.cloneRepository()
-                    .setURI(SystemProperties.GIT_URL.value())
+                    .setURI(config.getGitUrl())
                     .setCredentialsProvider(buildCredentialsProvider())
                     .setDirectory(new File(temporalDir.toAbsolutePath().toString()));
 
 
             try (Git call = cloneCommand.call()) {
-                log.info("Cloned repo:{}", SystemProperties.GIT_URL.value());
+                log.info("Cloned repo:{}", config.getGitUrl());
                 GitSessionImpl gitSession = ctx.getBean(GitSessionImpl.class);
                 gitSession.setGit(call);
                 return gitSession;
@@ -50,7 +53,7 @@ class GitServiceImpl implements GitService {
     }
 
     private UsernamePasswordCredentialsProvider buildCredentialsProvider() {
-        return new UsernamePasswordCredentialsProvider(SystemProperties.GIT_USERNAME.value(), SystemProperties.GIT_PASSWORD.value());
+        return new UsernamePasswordCredentialsProvider(config.getGitUsername(), config.getGitPassword());
     }
 
     public void cloneBranchFromRepo(GitSession session, String branch) throws GitServiceException {

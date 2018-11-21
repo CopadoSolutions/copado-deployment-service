@@ -4,6 +4,6 @@ public interface ValidationResult {
 
     boolean isSuccess();
     int getCode();
-    int getMessage();
+    String getMessage();
 
 }

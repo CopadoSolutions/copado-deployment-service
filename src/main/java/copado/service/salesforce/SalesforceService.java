@@ -2,14 +2,13 @@ package copado.service.salesforce;
 
 
 import com.sforce.soap.metadata.*;
-import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
+import copado.ApplicationConfiguration;
 import copado.exception.CopadoException;
-import copado.util.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,35 +22,16 @@ import java.io.IOException;
 @Service
 @Slf4j
 public class SalesforceService {
-    // binding for the metadata WSDL used for making metadata API calls
-    private MetadataConnection metadataConnection;
-    private PartnerConnection partnerConnection;
 
     // one second in milliseconds
     private static final long ONE_SECOND = 1000;
     // maximum number of attempts to deploy the zip file
     private static final int MAX_NUM_POLL_REQUESTS = 50;
 
-    @PostConstruct
-    public void init() throws ConnectionException {
+    @Autowired
+    private ApplicationConfiguration conf;
 
-        SalesforceUtilsInfo sfLoginInfo = SalesforceUtilsInfo.builder()
-                .username(SystemProperties.ORGID_USERNAME.value())
-                .password(SystemProperties.ORGID_PASSWORD.value())
-                .token(SystemProperties.ORGID_TOKEN.value())
-                .loginUrl(SystemProperties.ORGID_URL.value())
-                .proxyHost(SystemProperties.PROXY_HOST.value())
-                .proxyPort(SystemProperties.PROXY_PORT.value())
-                .proxyUsername(SystemProperties.PROXY_USERNAME.value())
-                .proxyPassword(SystemProperties.PROXY_PASSWORD.value())
-                .build();
-
-        partnerConnection = SalesforceUtils.createPartnerConnection(sfLoginInfo);
-
-        metadataConnection = SalesforceUtils.createMetadataConnection(sfLoginInfo, partnerConnection);
-    }
-
-    public void deployZip(String zipFileAbsolutePath) throws IOException, CopadoException, ConnectionException, InterruptedException {
+    public void deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath) throws IOException, CopadoException, ConnectionException, InterruptedException {
 
         log.info("Deploying in salesforce zip file:{}", zipFileAbsolutePath);
         byte[] zipBytes = readZipFile(zipFileAbsolutePath);

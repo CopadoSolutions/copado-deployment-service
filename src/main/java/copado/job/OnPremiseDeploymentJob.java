@@ -1,17 +1,17 @@
 package copado.job;
 
+import com.sforce.soap.metadata.MetadataConnection;
 import copado.controller.DeployRequest;
 import copado.exception.CopadoException;
 import copado.service.git.Branch;
 import copado.service.git.GitService;
 import copado.service.git.GitSession;
 import copado.service.salesforce.CopadoService;
+import copado.service.salesforce.MetadataConnectionService;
 import copado.service.salesforce.SalesforceService;
 import copado.service.validation.ValidationResult;
 import copado.service.validation.ValidationService;
-import copado.util.PathUtils;
-import copado.validator.Validator;
-import copado.validator.onpremisedeployment.Info;
+import copado.service.file.PathService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -39,9 +39,6 @@ public class OnPremiseDeploymentJob {
     private static final String ZIP_EXT = "zip";
 
     @Autowired
-    private Validator<Info> validator;
-
-    @Autowired
     private ValidationService validationService;
 
     @Autowired
@@ -52,6 +49,12 @@ public class OnPremiseDeploymentJob {
 
     @Autowired
     private GitService gitService;
+
+    @Autowired
+    private PathService pathService;
+
+    @Autowired
+    private MetadataConnectionService metadataConnectionService;
 
     @Async
     public void doJob(DeployRequest request) {
@@ -102,7 +105,8 @@ public class OnPremiseDeploymentJob {
             // ············································
 
             // Deploy with salesforce
-            salesforceService.deployZip(deployZipFileTMP.toAbsolutePath().toString());
+            MetadataConnection mc = metadataConnectionService.build(request.getOrgDestId());
+            salesforceService.deployZip(mc, deployZipFileTMP.toAbsolutePath().toString());
 
             copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
 
@@ -118,19 +122,23 @@ public class OnPremiseDeploymentJob {
 
 
         } catch (CopadoException e) {
-            log.error("On premise deployment failed:", e.getMessage());
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "On premise deployment failed:" + e.getMessage());
+            log.error("On premise deployment failed: {}", e.getMessage());
+            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
         } catch (Exception e) {
-            log.error("On premise deployment failed:", e);
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "On premise deployment failed:" + e.getMessage());
+            log.error("On premise deployment failed: ", e);
+            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
         } finally {
-            PathUtils.safeDelete(gitTMP);
-            PathUtils.safeDelete(deployZipFileTMPDir);
+            pathService.safeDelete(gitTMP);
+            pathService.safeDelete(deployZipFileTMPDir);
         }
     }
 
+    private String buildErrorStatus(Throwable e) {
+        return "On premise deployment failed:" + e.getMessage();
+    }
 
-    private void copyDeployZipToTemporalDir(GitSession gitSession, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws  IOException, CopadoException {
+
+    private void copyDeployZipToTemporalDir(GitSession gitSession, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws IOException, CopadoException {
         gitService.checkout(gitSession, deploymentBranch);
         Path deployZip = findDeployZipPath(deployBranchPath);
         FileUtils.copyFile(new File(deployZip.toAbsolutePath().toString()), new File(deployZipDest.toAbsolutePath().toString()));
