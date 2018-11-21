@@ -2,7 +2,9 @@ package copado.job;
 
 import copado.controller.DeployRequest;
 import copado.exception.CopadoException;
+import copado.service.git.Branch;
 import copado.service.git.GitService;
+import copado.service.git.GitSession;
 import copado.service.salesforce.CopadoService;
 import copado.service.salesforce.SalesforceService;
 import copado.service.validation.ValidationResult;
@@ -13,9 +15,6 @@ import copado.validator.onpremisedeployment.Info;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.lib.Ref;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
@@ -56,7 +55,7 @@ public class OnPremiseDeploymentJob {
 
     @Async
     public void doJob(DeployRequest request) {
-        log.info("Starting job");
+        log.info("Starting job: {}, deploymentId: {}", request.getCopadoJobId(), request.getDeploymentJobId());
 
         Path gitTMP = null;
         Path deployZipFileTMPDir = null;
@@ -69,8 +68,7 @@ public class OnPremiseDeploymentJob {
             gitTMP = Files.createTempDirectory(TEMP_GIT);
             log.info("Created temporal dir:'{}'", gitTMP);
 
-            Git git = gitService.cloneRepo(gitTMP);
-
+            GitSession git = gitService.cloneRepo(gitTMP);
             // ············································
             // Retrieving GIT info
             // ············································
@@ -85,7 +83,6 @@ public class OnPremiseDeploymentJob {
             deployZipFileTMPDir = Files.createTempDirectory(TEMP_DEPLOY);
             Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
             copyDeployZipToTemporalDir(git, request.getDeploymentBranch(), gitTMP, deployZipFileTMP);
-
 
             // ············································
             // Validate promote-branch with deploy zip
@@ -113,7 +110,7 @@ public class OnPremiseDeploymentJob {
             gitService.checkout(git, request.getTargetBranch());
 
             // Commit changes on git
-            Ref promoteBranchRef = gitService.getBranch(git, request.getPromoteBranch());
+            Branch promoteBranchRef = gitService.getBranch(git, request.getPromoteBranch());
             gitService.mergeWithBranch(git, promoteBranchRef, request.getTargetBranch());
             gitService.push(git);
 
@@ -133,8 +130,8 @@ public class OnPremiseDeploymentJob {
     }
 
 
-    private void copyDeployZipToTemporalDir(Git git, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws  IOException, CopadoException {
-        gitService.checkout(git, deploymentBranch);
+    private void copyDeployZipToTemporalDir(GitSession gitSession, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws  IOException, CopadoException {
+        gitService.checkout(gitSession, deploymentBranch);
         Path deployZip = findDeployZipPath(deployBranchPath);
         FileUtils.copyFile(new File(deployZip.toAbsolutePath().toString()), new File(deployZipDest.toAbsolutePath().toString()));
     }

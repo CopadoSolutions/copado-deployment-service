@@ -14,8 +14,7 @@ public class OnPremiseDeploymentController {
     private OnPremiseDeploymentJob onPremiseDeploymentJob;
 
     @PostMapping("deploy")
-    public ResponseEntity<String> onDeploy(@RequestBody DeployRequest request
-    ) {
+    public ResponseEntity<String> onDeploy(@RequestBody DeployRequest request) {
         onPremiseDeploymentJob.doJob(request);
         return new ResponseEntity<>("Deploying...!", HttpStatus.OK);
     }

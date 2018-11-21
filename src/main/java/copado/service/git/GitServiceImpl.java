@@ -6,24 +6,28 @@ import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service("gitService")
 @Slf4j
-public class GitServiceImpl implements GitService {
+class GitServiceImpl implements GitService {
+
+    @Autowired
+    private ApplicationContext ctx;
 
     private static final String ORIGIN = "origin/";
 
-    public Git cloneRepo(Path temporalDir) throws GitServiceException {
+
+    public GitSession cloneRepo(Path temporalDir) throws GitServiceException {
         if (temporalDir != null) {
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(SystemProperties.GIT_URL.value())
@@ -33,7 +37,10 @@ public class GitServiceImpl implements GitService {
 
             try (Git call = cloneCommand.call()) {
                 log.info("Cloned repo:{}", SystemProperties.GIT_URL.value());
-                return call;
+                GitSessionImpl gitSession = ctx.getBean(GitSessionImpl.class);
+                gitSession.setGit(call);
+                return gitSession;
+
             } catch (Exception e) {
                 log.error("Exception while cloning repo:", e);
                 throw new GitServiceException("Could not clone git repository", e);
@@ -46,45 +53,73 @@ public class GitServiceImpl implements GitService {
         return new UsernamePasswordCredentialsProvider(SystemProperties.GIT_USERNAME.value(), SystemProperties.GIT_PASSWORD.value());
     }
 
-    public void cloneBranchFromRepo(Git git, String branch) throws GitServiceException {
+    public void cloneBranchFromRepo(GitSession session, String branch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
         // Retrieve promote-branch from repo
         log.info("Retrieving branch:{}{}", ORIGIN, branch);
         handleExceptions(() ->
-                git.branchCreate()
+                gitSession.getGit().branchCreate()
                         .setName(branch)
                         .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.SET_UPSTREAM)
                         .setStartPoint(ORIGIN + branch)
                         .setForce(true).call());
     }
 
-    public Ref getBranch(Git git, String branch) throws GitServiceException {
+    public Branch getBranch(GitSession session, String branch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+
         // Retrieve latest commit from branch
         log.info("Retrieving id for branch:{}{}", ORIGIN, branch);
 
-        List<Ref> branches = handleExceptions(() -> git.branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call());
+        List<Ref> branches = handleExceptions(() -> gitSession.getGit().branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call());
         List<Ref> promoteBranchList = branches.stream().filter(b -> b.getName().endsWith(branch)).collect(Collectors.toList());
         Ref promoteBranchRef = promoteBranchList.get(0);
 
         log.info("Id:{} for branch:{}{}", promoteBranchRef.getObjectId(), ORIGIN, branch);
 
-        return promoteBranchRef;
+        BranchImpl toBeReturn = ctx.getBean(BranchImpl.class);
+        toBeReturn.setName(promoteBranchRef.getName());
+        toBeReturn.setId(promoteBranchRef.getObjectId());
+
+        return toBeReturn;
     }
 
-    public void mergeWithBranch(Git git, Ref branchToBeMerged, String targetBranch) throws GitServiceException {
+    public void mergeWithBranch(GitSession session, Branch branchToBeMerged, String targetBranch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+        BranchImpl branch = castBranch(branchToBeMerged);
+
         log.info("Merge into target branch, and local commit.");
-        handleExceptions(() -> git.merge()
-                .include(branchToBeMerged.getObjectId()).setCommit(true).setMessage("Merge branch '" + branchToBeMerged.getName() + "' into '" + targetBranch + "'")
+        handleExceptions(() -> gitSession.getGit().merge()
+                .include(branch.getId()).setCommit(true).setMessage("Merge branch '" + branch.getName() + "' into '" + targetBranch + "'")
                 .call());
     }
 
-    public void checkout(Git git, String branch) throws GitServiceException {
+    public void checkout(GitSession session, String branch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+
         log.info("Checkout branch:{}", branch);
-        handleExceptions(() -> git.checkout().setName(branch).call());
+        handleExceptions(() -> gitSession.getGit().checkout().setName(branch).call());
     }
 
-    public void push(Git git) throws GitServiceException {
+    public void push(GitSession session) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+
         log.info("Pushing to remote target branch");
-        handleExceptions(() -> git.push().setCredentialsProvider(buildCredentialsProvider()).call());
+        handleExceptions(() -> gitSession.getGit().push().setCredentialsProvider(buildCredentialsProvider()).call());
+    }
+
+    private GitSessionImpl castSession(GitSession gitSession) throws GitServiceException {
+        if (gitSession instanceof GitSessionImpl) {
+            return (GitSessionImpl) gitSession;
+        }
+        throw new GitServiceException("Could not cast git-session to " + GitSessionImpl.class.getCanonicalName());
+    }
+
+    private BranchImpl castBranch(Branch branch) throws GitServiceException {
+        if (branch instanceof BranchImpl) {
+            return (BranchImpl) branch;
+        }
+        throw new GitServiceException("Could not cast branch to " + BranchImpl.class.getCanonicalName());
     }
 
     private <T> T handleExceptions(GitServiceImpl.GitCodeBlock<T> codeBlock) throws GitServiceException {

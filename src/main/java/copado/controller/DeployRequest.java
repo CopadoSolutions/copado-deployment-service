@@ -9,4 +9,5 @@ public class DeployRequest {
     private String targetBranch;
     private String deploymentBranch;
     private String gerritChangeId;
+    private String copadoJobId;
 }
