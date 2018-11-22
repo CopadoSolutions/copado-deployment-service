@@ -78,7 +78,7 @@ public class OnPremiseDeploymentJob {
             GitSession git = gitService.cloneRepo(gitTMP);
             DeployRequest request = downloadAllBranchesAndReadDeploymentRequest(git);
             deploymentJobId = request.getDeploymentJobId();
-            Path deployZipFileTMP = copyDeployZipToTemporalDir(request, gitTMP, deployZipFileTMPDir, git);
+            Path deployZipFileTMP = copyDeployZipToTemporalDir(gitTMP, deployZipFileTMPDir, git);
             log.info("Deploy zip file tmp: {}", deployZipFileTMP);
             validatePromoteBranch(request, gitTMP, git, deployZipFileTMP);
 
@@ -125,7 +125,7 @@ public class OnPremiseDeploymentJob {
         return Files.createTempDirectory(TEMP_DEPLOY);
     }
 
-    private Path copyDeployZipToTemporalDir(DeployRequest request, Path gitTMP, Path deployZipFileTMPDir, GitSession git) throws IOException, CopadoException {
+    private Path copyDeployZipToTemporalDir(Path gitTMP, Path deployZipFileTMPDir, GitSession git) throws IOException, CopadoException {
         Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
         copyDeployZipToTemporalDir(git, deployBranchName, gitTMP, deployZipFileTMP);
         return deployZipFileTMP;
