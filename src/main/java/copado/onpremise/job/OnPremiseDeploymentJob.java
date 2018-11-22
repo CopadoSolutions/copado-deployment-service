@@ -1,6 +1,7 @@
 package copado.onpremise.job;
 
 import com.sforce.soap.metadata.MetadataConnection;
+import com.sforce.soap.partner.fault.UnexpectedErrorFault;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.controller.DeployRequest;
 import copado.onpremise.exception.CopadoException;
@@ -57,6 +58,7 @@ public class OnPremiseDeploymentJob {
     @Autowired
     private MetadataConnectionService metadataConnectionService;
 
+
     @Async
     public void doJob(DeployRequest request) {
         log.info("Starting job: {}, deploymentId: {}", request.getCopadoJobId(), request.getDeploymentJobId());
@@ -74,7 +76,7 @@ public class OnPremiseDeploymentJob {
             GitSession git = gitService.cloneRepo(gitTMP);
             downloadAllBranches(request, git);
             Path deployZipFileTMP = copyDeployZipToTemporalDir(request, gitTMP, deployZipFileTMPDir, git);
-
+            log.info("Deploy zip file tmp: {}", deployZipFileTMP);
             validatePromoteBranch(request, gitTMP, git, deployZipFileTMP);
 
             deployZip(request, deployZipFileTMP);
@@ -86,6 +88,9 @@ public class OnPremiseDeploymentJob {
 
         } catch (CopadoException e) {
             log.error("On premise deployment failed: {}", e.getMessage());
+            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
+        } catch (UnexpectedErrorFault e) {
+            log.error("On premise deployment failed: Code: {}, Message: {}", e.getExceptionCode(), e.getExceptionMessage(), e);
             copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
         } catch (Exception e) {
             log.error("On premise deployment failed: ", e);

@@ -14,7 +14,10 @@ copado.onpremise.deployment:
 
   ## Just for testing with default example services
   00D1t000000otHB:
-     url: https://login.salesforce.com/services/Soap/u/43.0
-     username: dmarquez@copa.do-dmd.test
-     token: 3jhSK0IAWaE1VPbaT7z94bBy
-     password: 1234567890A
+    url: https://login.salesforce.com/services/Soap/u/43.0
+    username: dmarquez@copa.do-dmd.test
+    token: 3jhSK0IAWaE1VPbaT7z94bBy
+    password: 1234567890A
+
+debug: false # Enable debug logs.
+trace: false # Enable trace logs.

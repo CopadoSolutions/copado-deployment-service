@@ -7,7 +7,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
@@ -34,9 +33,9 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .logout().logoutSuccessUrl("/").permitAll()
 
                 /* CRSF Token for session */
-                .and().csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                .and().csrf().disable().rememberMe().disable()
 
-                .and().addFilterBefore(new WebSecurityFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new WebSecurityFilter(), BasicAuthenticationFilter.class)
 
                 .exceptionHandling().authenticationEntryPoint(authenticationRestEntryPoint)
         ;

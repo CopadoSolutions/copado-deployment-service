@@ -18,7 +18,7 @@ class SalesforceCredentialServiceImpl implements SalesforceCredentialService {
                 .url(buildProperty(orgId, "url"))
                 .username(buildProperty(orgId, "username"))
                 .password(buildProperty(orgId, "password"))
-                .token(buildProperty(orgId, "enviroment"))
+                .token(buildProperty(orgId, "token"))
                 .build();
     }
 

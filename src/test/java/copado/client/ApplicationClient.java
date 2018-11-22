@@ -2,34 +2,33 @@ package copado.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import copado.onpremise.Application;
+import copado.onpremise.ApplicationConfiguration;
 import copado.onpremise.controller.DeployRequest;
 import copado.onpremise.security.TokenGenerator;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.IOException;
 
+@Slf4j
 @RunWith(SpringRunner.class)
-@ComponentScan(basePackages = {"copado.onpremise"})
-@SpringBootTest(classes = Application.class)
-public class ApplicationClient implements Callback<String> {
+@SpringBootTest(classes = {ApplicationConfiguration.class, TokenGenerator.class})
+public class ApplicationClient {
 
     @Autowired
     private TokenGenerator tokenGenerator;
 
     @Test
-    public void doTest() {
+    public void doTest() throws IOException {
 
         //Create token
         String token = tokenGenerator.generateToken().get();
@@ -50,9 +49,6 @@ public class ApplicationClient implements Callback<String> {
         //Create connection
         Retrofit retrofit = new Retrofit.Builder().addConverterFactory(GsonConverterFactory.create(gson)).baseUrl("http://localhost:8080/").client(builder.build()).build();
 
-        //Callback-object
-        ApplicationClient client = new ApplicationClient();
-
         //Do request
         DeployRequest request = new DeployRequest();
         // TODO: Edit here with your custom test values
@@ -61,28 +57,14 @@ public class ApplicationClient implements Callback<String> {
         request.setTargetBranch("target_branch");
         request.setDeploymentBranch("deployment_branch");
         request.setCopadoJobId("TEST_COPADO_JOB_ID");
-        request.setOrgDestId("ORG_ID_DEST");
+        request.setOrgDestId("00D1t000000otHB"); // Your destination org where the zip will be deployed
 
 
         DeploymentAPI api = retrofit.create(DeploymentAPI.class);
         Call<String> call = api.getDeploy(request);
-        call.enqueue(client);
-    }
-
-
-    @Override
-    public void onResponse(Call<String> call, Response<String> response) {
-        if (response.isSuccessful()) {
-            String body = response.body();
-            System.out.println("RECEIVED => " + body);
-        } else {
-            System.out.println(response.toString());
-        }
-    }
-
-    @Override
-    public void onFailure(Call<String> call, Throwable t) {
-        t.printStackTrace();
+        log.info("RECEIVED => " + call.execute().body());
+        log.info("Test finished!");
+       // call.enqueue(client);
     }
 
 }
