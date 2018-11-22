@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 @Service("salesforceCredentialService")
 class SalesforceCredentialServiceImpl implements SalesforceCredentialService {
 
-    private final static String PREFIX = "copado.onpremise.deployment";
+    private static final String PREFIX = "copado.onpremise.deployment";
 
     @Autowired
     private Environment environment;

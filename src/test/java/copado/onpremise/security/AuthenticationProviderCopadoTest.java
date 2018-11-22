@@ -1,22 +1,29 @@
 package copado.onpremise.security;
 
+import copado.onpremise.Application;
 import copado.onpremise.ApplicationConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.*;
 
-@RunWith(PowerMockRunner.class)
+@Slf4j
+@RunWith(SpringRunner.class)
+@ComponentScan(basePackages = "copado.onpremise")
+@SpringBootTest(classes = {Application.class})
 public class AuthenticationProviderCopadoTest {
 
-    private AuthenticationProviderCopado auth = new AuthenticationProviderCopado();
+    @Autowired
+    private AuthenticationProviderCopado auth;
 
-    @Mock
+    @Autowired
     private ApplicationConfiguration applicationConfiguration;
 
     @Autowired
