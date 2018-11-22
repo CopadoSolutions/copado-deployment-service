@@ -16,3 +16,4 @@ fetchUntilCommits.sh
 fetchUntilCommonNode.sh
 Copado.yml
 application.yml
+payload.json
