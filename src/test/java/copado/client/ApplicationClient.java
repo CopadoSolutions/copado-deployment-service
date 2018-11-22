@@ -64,7 +64,6 @@ public class ApplicationClient {
         Call<String> call = api.getDeploy(request);
         log.info("RECEIVED => " + call.execute().body());
         log.info("Test finished!");
-       // call.enqueue(client);
     }
 
 }
