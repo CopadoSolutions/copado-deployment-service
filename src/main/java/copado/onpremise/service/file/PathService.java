@@ -2,16 +2,13 @@ package copado.onpremise.service.file;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 
 @Slf4j
-@Service
+@Component
 public class PathService {
-
-    private PathService() {
-    }
 
     /**
      * Removes the directory if exists.
