@@ -1,0 +1,24 @@
+copado.onpremise.deployment:
+
+  copadoUsername:
+  copadoUrl:
+  copadoPassword:
+  copadoToken:
+
+  proxyHost:
+  proxyPort:
+  proxyUsername:
+  proxyPassword:
+
+  gitUrl:
+  gitUsername:
+  gitPassword:
+
+  secret:
+
+  ## Just for testing with default example services
+  # Your_Organization_Id:
+  #   url:
+  #   username:
+  #   token:
+  #   password:
