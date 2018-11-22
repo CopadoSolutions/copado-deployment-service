@@ -1,4 +1,4 @@
-package copado.onpremise.controller;
+package copado.onpremise.job;
 
 import lombok.Data;
 

@@ -3,7 +3,6 @@ package copado.onpremise.job;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.fault.UnexpectedErrorFault;
 import com.sforce.ws.ConnectionException;
-import copado.onpremise.controller.DeployRequest;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.service.file.PathService;
 import copado.onpremise.service.git.Branch;
@@ -19,7 +18,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -58,8 +56,6 @@ public class OnPremiseDeploymentJob {
     @Autowired
     private MetadataConnectionService metadataConnectionService;
 
-
-    @Async
     public void doJob(DeployRequest request) {
         log.info("Starting job: {}, deploymentId: {}", request.getCopadoJobId(), request.getDeploymentJobId());
 

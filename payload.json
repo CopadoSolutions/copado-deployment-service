@@ -1,0 +1,8 @@
+{
+  "deploymentJobId":"a0C1n00001EDt6N",
+  "promoteBranch":"promote_branch",
+  "targetBranch":"target_branch",
+  "deploymentBranch":"deployment_branch",
+  "copadoJobId":"TEST_ID_FOR_COPADOJOBID_2",
+  "orgDestId":"00D1t000000otHB"
+}
