@@ -31,6 +31,7 @@ class GitServiceImpl implements GitService {
 
 
     public GitSession cloneRepo(Path temporalDir) throws GitServiceException {
+        log.info("Cloning git repository ...");
         if (temporalDir != null) {
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(config.getGitUrl())
@@ -42,6 +43,7 @@ class GitServiceImpl implements GitService {
                 log.info("Cloned repo:{}", config.getGitUrl());
                 GitSessionImpl gitSession = ctx.getBean(GitSessionImpl.class);
                 gitSession.setGit(call);
+                gitSession.setBaseDir(temporalDir);
                 log.info("Repository cloned!");
                 return gitSession;
 

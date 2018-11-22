@@ -45,7 +45,13 @@ public class CopadoService {
      */
     public void updateDeploymentJobStatus(String id, String status) {
 
-        log.info("Updating Deployment Job status:'{}' id:'{}'", status, id);
+        log.info("Updating Deployment Job[{}], Status:'{}' ", id, status);
+
+        if (id == null) {
+            log.error("Could not update job status because id is null");
+            return;
+        }
+
         SObject object = new SObject();
         object.setType(getNamespace() + "Deployment_Job__c");
         object.setField(getNamespace() + "Status__c", status);

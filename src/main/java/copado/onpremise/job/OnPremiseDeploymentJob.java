@@ -16,10 +16,11 @@ import copado.onpremise.service.validation.ValidationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,14 +30,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@Component
-@Scope("prototype")
+@Service
 public class OnPremiseDeploymentJob {
 
     private static final String TEMP_GIT = "git";
     private static final String TEMP_DEPLOY = "deploy";
     private static final String GIT_DEPLOY_DIR_IN_BRANCH = "deployment";
     private static final String ZIP_EXT = "zip";
+    private static final String MASTER = "master";
+    private static final String PAYLOAD_JSON = "payload.json";
 
     @Autowired
     private ValidationService validationService;
@@ -56,21 +58,26 @@ public class OnPremiseDeploymentJob {
     @Autowired
     private MetadataConnectionService metadataConnectionService;
 
-    public void doJob(DeployRequest request) {
-        log.info("Starting job: {}, deploymentId: {}", request.getCopadoJobId(), request.getDeploymentJobId());
+    @Autowired
+    private String deployBranchName;
+
+    @PostConstruct
+    public void doJob() {
+
+        log.info("Starting job. Deploy branch name: {}", deployBranchName);
 
         Path gitTMP = null;
         Path deployZipFileTMPDir = null;
+        String deploymentJobId = null;
 
         try {
 
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Starting on premise deployment job task");
             gitTMP = createTemporalGitPath();
             deployZipFileTMPDir = createTemporalDeployZipPath();
 
-
             GitSession git = gitService.cloneRepo(gitTMP);
-            downloadAllBranches(request, git);
+            DeployRequest request = downloadAllBranchesAndReadDeploymentRequest(git);
+            deploymentJobId = request.getDeploymentJobId();
             Path deployZipFileTMP = copyDeployZipToTemporalDir(request, gitTMP, deployZipFileTMPDir, git);
             log.info("Deploy zip file tmp: {}", deployZipFileTMP);
             validatePromoteBranch(request, gitTMP, git, deployZipFileTMP);
@@ -84,13 +91,13 @@ public class OnPremiseDeploymentJob {
 
         } catch (CopadoException e) {
             log.error("On premise deployment failed: {}", e.getMessage());
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
+            copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (UnexpectedErrorFault e) {
             log.error("On premise deployment failed: Code: {}, Message: {}", e.getExceptionCode(), e.getExceptionMessage(), e);
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
+            copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (Exception e) {
             log.error("On premise deployment failed: ", e);
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), buildErrorStatus(e));
+            copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } finally {
             pathService.safeDelete(gitTMP);
             pathService.safeDelete(deployZipFileTMPDir);
@@ -120,7 +127,7 @@ public class OnPremiseDeploymentJob {
 
     private Path copyDeployZipToTemporalDir(DeployRequest request, Path gitTMP, Path deployZipFileTMPDir, GitSession git) throws IOException, CopadoException {
         Path deployZipFileTMP = deployZipFileTMPDir.resolve("deploy.zip");
-        copyDeployZipToTemporalDir(git, request.getDeploymentBranch(), gitTMP, deployZipFileTMP);
+        copyDeployZipToTemporalDir(git, deployBranchName, gitTMP, deployZipFileTMP);
         return deployZipFileTMP;
     }
 
@@ -136,10 +143,15 @@ public class OnPremiseDeploymentJob {
         }
     }
 
-    private void downloadAllBranches(DeployRequest request, GitSession git) throws CopadoException {
+    private DeployRequest downloadAllBranchesAndReadDeploymentRequest(GitSession git) throws CopadoException, IOException {
+        gitService.cloneBranchFromRepo(git, deployBranchName);
+        gitService.checkout(git,deployBranchName);
+        DeployRequest request = new ObjectMapper().readValue(git.getBaseDir().resolve(GIT_DEPLOY_DIR_IN_BRANCH).resolve(PAYLOAD_JSON).toFile(), DeployRequest.class);
+        gitService.checkout(git, MASTER);
+
         gitService.cloneBranchFromRepo(git, request.getPromoteBranch());
         gitService.cloneBranchFromRepo(git, request.getTargetBranch());
-        gitService.cloneBranchFromRepo(git, request.getDeploymentBranch());
+        return request;
     }
 
     private Path createTemporalGitPath() throws IOException {
