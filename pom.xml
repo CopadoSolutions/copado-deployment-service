@@ -19,35 +19,23 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
+        <salesforce.version>43.0.0</salesforce.version>
     </properties>
 
     <dependencies>
-        <!-- Web monitoring -->
-        <!--  <dependency>     -->
-        <!--      <groupId>org.springframework.boot</groupId>  -->
-        <!--      <artifactId>spring-boot-starter-actuator</artifactId>    -->
-        <!--  </dependency>    -->
 
-        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- Security -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-
-
-        <!-- Web server -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <artifactId>spring-boot-starter</artifactId>
         </dependency>
 
         <!-- Utils -->
+        <dependency>
+            <groupId>commons-cli</groupId>
+            <artifactId>commons-cli</artifactId>
+            <version>1.4</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
@@ -66,81 +54,24 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Git -->
+        <!-- Git (Optional, depending on your GitService implementation) -->
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
             <version>5.0.2.201807311906-r</version>
         </dependency>
 
-        <!-- Ant -->
-        <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant</artifactId>
-            <version>1.9.7</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.ant</groupId>
-            <artifactId>ant-launcher</artifactId>
-            <version>1.9.7</version>
-        </dependency>
-
         <!-- Salesforce -->
         <dependency>
             <groupId>com.force.api</groupId>
             <artifactId>force-partner-api</artifactId>
-            <version>43.0.0</version>
+            <version>${salesforce.version}</version>
         </dependency>
 
         <dependency>
             <groupId>com.force.api</groupId>
             <artifactId>force-metadata-api</artifactId>
-            <version>43.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.liferay</groupId>
-            <artifactId>com.sforce.soap.partner</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.force.api</groupId>
-            <artifactId>force-apex-api</artifactId>
-            <version>43.0.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.force.api</groupId>
-            <artifactId>force-wsc</artifactId>
-            <version>43.0.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/it.dontesta.labs.liferay.salesforce.client.soap/salesforce-client-soap -->
-        <dependency>
-            <groupId>it.dontesta.labs.liferay.salesforce.client.soap</groupId>
-            <artifactId>salesforce-client-soap</artifactId>
-            <version>1.0.2</version>
-        </dependency>
-
-
-        <!-- Rest client -->
-        <dependency>
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>retrofit</artifactId>
-            <version>2.4.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.urswolfer.gerrit.client.rest</groupId>
-            <artifactId>gerrit-rest-java-client</artifactId>
-            <version>0.8.15</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.squareup.retrofit2</groupId>
-            <artifactId>converter-gson</artifactId>
-            <version>2.4.0</version>
+            <version>${salesforce.version}</version>
         </dependency>
 
         <!-- For test -->
@@ -157,26 +88,6 @@
             <version>4.12</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>1.7.4</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito2</artifactId>
-            <version>1.7.4</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.sourceforge.cobertura</groupId>
-            <artifactId>cobertura</artifactId>
-            <version>2.1.1</version>
-            <scope>test</scope>
-        </dependency>
 
     </dependencies>
 
@@ -186,40 +97,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <check>
-                    </check>
-                    <formats>
-                        <format>xml</format>
-                    </formats>
-                    <aggregate>true</aggregate>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>clean</goal>
-                            <goal>cobertura</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
-
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>cobertura-maven-plugin</artifactId>
-                <version>2.7</version>
-            </plugin>
-        </plugins>
-    </reporting>
 
 </project>
