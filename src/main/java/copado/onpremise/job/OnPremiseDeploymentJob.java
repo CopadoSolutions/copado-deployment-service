@@ -105,8 +105,6 @@ public class OnPremiseDeploymentJob {
     }
 
     private void mergeAndPushDeployment(DeployRequest request, GitSession git) throws CopadoException {
-        // Checkout target_branch
-        gitService.checkout(git, request.getTargetBranch());
 
         // Commit changes on git
         Branch promoteBranchRef = gitService.getBranch(git, request.getPromoteBranch());

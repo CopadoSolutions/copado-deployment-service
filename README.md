@@ -48,10 +48,22 @@ mvn clean install
 * Check the project runs
 
 ```
-java -jar target/copado-deployment-service-1.0.0.jar -help
+java -jar target/copado-deployment-service-1.0.0-spring-boot.jar -help
 ```
 
 ​	After run this command, you will be able to see the project help usage in the command line.
+
+
+
+### Service implementation
+
+Following service interfaces must be implemented to project customization:
+
+| Service                                                      | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| copado.onpremise.service.git.GitService                      | Git client that allows to connect and execute actions in your git repository. |
+| copado.onpremise.service.credential.SalesforceCredentialService | Service that allows to retrieve the   credentials for your organizations. |
+| copado.onpremise.service.validation.ValidationService        | Service that will allow or deny the deployment.              |
 
 
 

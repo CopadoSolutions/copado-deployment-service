@@ -94,6 +94,8 @@ class GitServiceImpl implements GitService {
         GitSessionImpl gitSession = castSession(session);
         BranchImpl branch = castBranch(branchToBeMerged);
 
+        checkout(session,targetBranch);
+
         log.info("Merge into target branch, and local commit.");
         handleExceptions(() -> gitSession.getGit().merge()
                 .include(branch.getId()).setCommit(true).setMessage("Merge branch '" + branch.getName() + "' into '" + targetBranch + "'")
