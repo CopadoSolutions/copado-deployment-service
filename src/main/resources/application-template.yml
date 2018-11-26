@@ -1,23 +1,34 @@
 copado.onpremise.deployment:
 
+  # Copado user credentials.
+  # Token must be generated through Salesforce >> My Settings >> Personal >> Reset my security token
   copadoUsername:
   copadoUrl:
   copadoPassword:
   copadoToken:
 
-  proxyHost:
-  proxyPort:
-  proxyUsername:
-  proxyPassword:
+  ## Just if needed
+  # proxyHost:
+  # proxyPort:
+  # proxyUsername:
+  # proxyPassword:
 
-  gitUrl:
-  gitUsername:
-  gitPassword:
 
-  secret:
-
+  ## ################################################################################################ ##
   ## Just for testing with default example services
-  # Your_Organization_Id:
+  ## ################################################################################################ ##
+
+  ## ############################## ##
+  # GitService
+  ## ############################## ##
+  # gitUrl:
+  # gitUsername:
+  # gitPassword:
+
+  ## ############################## ##
+  # SalesforceCredentialService
+  ## ############################## ##
+  # ORG_ID:
   #   url:
   #   username:
   #   token:
