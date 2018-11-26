@@ -57,13 +57,15 @@ java -jar target/copado-deployment-service-1.0.0-spring-boot.jar -help
 
 ### Service implementation
 
-Following service interfaces must be implemented to project customization:
+This is a Spring based project, and some service implementations can be accomplished to deeper customization. Following service interfaces must be implemented to project customization:
 
-| Service                                                      | Description                                                  |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| copado.onpremise.service.git.GitService                      | Git client that allows to connect and execute actions in your git repository. |
-| copado.onpremise.service.credential.SalesforceCredentialService | Service that allows to retrieve the   credentials for your organizations. |
-| copado.onpremise.service.validation.ValidationService        | Service that will allow or deny the deployment.              |
+| Service                                                      | Description                                                  | Bean                        |
+| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------- |
+| copado.onpremise.service.git.GitService                      | Git client that allows to connect and execute actions in your git repository. | gitService                  |
+| copado.onpremise.service.credential.SalesforceCredentialService | Service that allows to retrieve the   credentials for your organizations. | salesforceCredentialService |
+| copado.onpremise.service.validation.ValidationService        | Service that will allow or deny the deployment.              | validationService           |
+
+All of these services includes a default implementation into the given project.
 
 
 
