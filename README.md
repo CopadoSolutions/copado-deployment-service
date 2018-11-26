@@ -1,4 +1,4 @@
-# Project Title
+# Copado deployment service - On premise
 
 This project runs Copado On-Premise Deployment Job, which allows to run your own code validations before deploy metadata to Salesforce.
 
@@ -16,7 +16,7 @@ In order to be able to develop on this project, you will need to install:
 
 * Java development IDE
 
-* [Maven](https://maven.apache.org/download.cgi)
+* [Maven 3.6.0](https://maven.apache.org/download.cgi)  or above
 
 
 ### Installing
