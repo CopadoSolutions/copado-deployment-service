@@ -25,8 +25,6 @@ public class ApplicationConfiguration {
     private String gitUsername;
     private String gitPassword;
 
-    private String secret;
-
     private String renameNamespace;
 
 
