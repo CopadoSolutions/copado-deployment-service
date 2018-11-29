@@ -1,6 +1,9 @@
 package copado.onpremise.service.git;
 
-import copado.onpremise.ApplicationConfiguration;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import copado.onpremise.configuration.ApplicationConfiguration;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
@@ -8,30 +11,28 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Service("gitService")
+@AllArgsConstructor(onConstructor = @__({ @Inject}))
 @Slf4j
 class GitServiceImpl implements GitService {
 
-    @Autowired
     private ApplicationConfiguration config;
-
-    @Autowired
-    private ApplicationContext ctx;
 
     private static final String ORIGIN = "origin/";
 
+    private Provider<GitSession> gitSessionProvider;
+    private Provider<Branch> gitBranchProvider;
 
     public GitSession cloneRepo(Path temporalDir) throws GitServiceException {
+
         log.info("Cloning git repository ...");
+        GitSessionImpl gitSession = castSession(gitSessionProvider.get());
+
         if (temporalDir != null) {
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(config.getGitUrl())
@@ -40,8 +41,8 @@ class GitServiceImpl implements GitService {
 
 
             try (Git call = cloneCommand.call()) {
+
                 log.info("Cloned repo:{}", config.getGitUrl());
-                GitSessionImpl gitSession = ctx.getBean(GitSessionImpl.class);
                 gitSession.setGit(call);
                 gitSession.setBaseDir(temporalDir);
                 log.info("Repository cloned!");
@@ -71,9 +72,10 @@ class GitServiceImpl implements GitService {
                         .setForce(true).call());
     }
 
+
     public Branch getBranch(GitSession session, String branch) throws GitServiceException {
         GitSessionImpl gitSession = castSession(session);
-
+        BranchImpl toBeReturn = castBranch(gitBranchProvider.get());
         // Retrieve latest commit from branch
         log.info("Retrieving id for branch:{}{}", ORIGIN, branch);
 
@@ -83,7 +85,6 @@ class GitServiceImpl implements GitService {
 
         log.info("Id:{} for branch:{}{}", promoteBranchRef.getObjectId(), ORIGIN, branch);
 
-        BranchImpl toBeReturn = ctx.getBean(BranchImpl.class);
         toBeReturn.setName(promoteBranchRef.getName());
         toBeReturn.setId(promoteBranchRef.getObjectId());
 

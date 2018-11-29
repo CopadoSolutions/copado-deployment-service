@@ -1,16 +1,17 @@
 package copado.onpremise.service.credential;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 
-@Service("salesforceCredentialService")
+import com.google.inject.Inject;
+import lombok.AllArgsConstructor;
+import org.apache.commons.configuration.CompositeConfiguration;
+
+@AllArgsConstructor(onConstructor = @__({ @Inject}))
 class SalesforceCredentialServiceImpl implements SalesforceCredentialService {
 
     private static final String PREFIX = "copado.onpremise.deployment";
 
-    @Autowired
-    private Environment environment;
+    private CompositeConfiguration compositeConfiguration;
+
 
     public SalesforceCredentials getCredentials(String orgId) {
 
@@ -23,6 +24,6 @@ class SalesforceCredentialServiceImpl implements SalesforceCredentialService {
     }
 
     private String buildProperty(String orgId, String propertyName) {
-        return environment.getProperty(String.format("%s.%s.%s", PREFIX, orgId, propertyName));
+        return compositeConfiguration.getString(String.format("%s.%s.%s", PREFIX, orgId, propertyName));
     }
 }

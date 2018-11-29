@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Builder
 @Data
-public class SalesforceUtilsInfo {
+class SalesforceUtilsInfo {
 
     private String username;
     private String password;

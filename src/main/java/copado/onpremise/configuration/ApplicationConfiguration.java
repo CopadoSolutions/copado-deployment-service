@@ -1,14 +1,11 @@
-package copado.onpremise;
+package copado.onpremise.configuration;
 
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
-@Configuration
-@EnableConfigurationProperties
-@ConfigurationProperties(prefix = "copado.onpremise.deployment")
+
 @Data
+@Builder
 public class ApplicationConfiguration {
 
     private String copadoUsername;

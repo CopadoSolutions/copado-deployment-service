@@ -1,5 +1,6 @@
 package copado.onpremise.job;
 
+import com.google.inject.Inject;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.fault.UnexpectedErrorFault;
 import com.sforce.ws.ConnectionException;
@@ -13,14 +14,14 @@ import copado.onpremise.service.salesforce.MetadataConnectionService;
 import copado.onpremise.service.salesforce.SalesforceService;
 import copado.onpremise.service.validation.ValidationResult;
 import copado.onpremise.service.validation.ValidationService;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,8 +31,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
-@Service
-public class OnPremiseDeploymentJob {
+@RequiredArgsConstructor(onConstructor = @__({@Inject}))
+public class OnPremiseDeploymentJob implements Job {
 
     private static final String TEMP_GIT = "git";
     private static final String TEMP_DEPLOY = "deploy";
@@ -40,29 +41,28 @@ public class OnPremiseDeploymentJob {
     private static final String MASTER = "master";
     private static final String PAYLOAD_JSON = "payload.json";
 
-    @Autowired
+    @NonNull
     private ValidationService validationService;
 
-    @Autowired
+    @NonNull
     private SalesforceService salesforceService;
 
-    @Autowired
+    @NonNull
     private CopadoService copadoService;
 
-    @Autowired
+    @NonNull
     private GitService gitService;
 
-    @Autowired
+    @NonNull
     private PathService pathService;
 
-    @Autowired
+    @NonNull
     private MetadataConnectionService metadataConnectionService;
 
-    @Autowired
+    @Setter
     private String deployBranchName;
 
-    @PostConstruct
-    public void doJob() {
+    public void execute() {
 
         log.info("Starting job. Deploy branch name: {}", deployBranchName);
 
@@ -143,7 +143,7 @@ public class OnPremiseDeploymentJob {
 
     private DeployRequest downloadAllBranchesAndReadDeploymentRequest(GitSession git) throws CopadoException, IOException {
         gitService.cloneBranchFromRepo(git, deployBranchName);
-        gitService.checkout(git,deployBranchName);
+        gitService.checkout(git, deployBranchName);
         DeployRequest request = new ObjectMapper().readValue(git.getBaseDir().resolve(GIT_DEPLOY_DIR_IN_BRANCH).resolve(PAYLOAD_JSON).toFile(), DeployRequest.class);
         gitService.checkout(git, MASTER);
 
