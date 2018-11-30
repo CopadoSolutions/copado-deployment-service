@@ -12,21 +12,14 @@ public class ConfigurationModule extends AbstractModule {
     private static final String PROPERTY_PREFIX = "copado.onpremise.deployment.";
 
     private final CompositeConfiguration config = new CompositeConfiguration();
+    private final ApplicationConfiguration appConfig;
 
     public ConfigurationModule() throws ConfigurationException {
         super();
         config.addConfiguration(new SystemConfiguration());
         config.addConfiguration(new PropertiesConfiguration("application.properties"));
-    }
 
-    @Provides
-    CompositeConfiguration compositeConfiguration() {
-        return config;
-    }
-
-    @Provides
-    ApplicationConfiguration applicationConfiguration() {
-        return ApplicationConfiguration.builder()
+        appConfig = ApplicationConfiguration.builder()
                 .copadoUsername(getStringConfig("copadoUsername"))
                 .copadoUrl(getStringConfig("copadoUrl"))
                 .copadoPassword(getStringConfig("copadoPassword"))
@@ -42,8 +35,18 @@ public class ConfigurationModule extends AbstractModule {
                 .build();
     }
 
+    @Provides
+    CompositeConfiguration compositeConfiguration() {
+        return config;
+    }
+
+    @Provides
+    ApplicationConfiguration applicationConfiguration() {
+        return appConfig;
+    }
+
     private String getStringConfig(String configName) {
-        return config.getString(PROPERTY_PREFIX + "copadoUsername");
+        return config.getString(PROPERTY_PREFIX + configName);
     }
 
 }

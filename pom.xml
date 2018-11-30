@@ -17,12 +17,8 @@
     </properties>
 
     <dependencies>
-        <!--
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter</artifactId>
-                </dependency>
-        -->
+
+
         <!-- Dependency management -->
         <dependency>
             <groupId>com.google.inject</groupId>
@@ -82,6 +78,32 @@
             <version>${salesforce.version}</version>
         </dependency>
 
+        <!-- Log -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.25</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.3</version>
+        </dependency>
+
         <!-- For test -->
 
         <dependency>
@@ -105,21 +127,6 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
-            <!--    <plugin>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-maven-plugin</artifactId>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>repackage</goal>
-                            </goals>
-                            <configuration>
-                                <classifier>spring-boot</classifier>
-                                <mainClass>${main.class}</mainClass>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>-->
         </plugins>
     </build>
 
