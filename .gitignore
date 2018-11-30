@@ -17,3 +17,4 @@ fetchUntilCommonNode.sh
 Copado.yml
 application.yml
 payload.json
+**/application.properties

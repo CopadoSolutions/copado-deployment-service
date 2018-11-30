@@ -1,21 +1,26 @@
 package copado.onpremise;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import copado.onpremise.configuration.ConfigurationModule;
+import copado.onpremise.job.JobModule;
+import copado.onpremise.job.OnPremiseDeploymentJob;
+import copado.onpremise.service.credential.CredentialModule;
+import copado.onpremise.service.file.FileModule;
+import copado.onpremise.service.git.GitModule;
+import copado.onpremise.service.salesforce.SalesforceModule;
+import copado.onpremise.service.validation.ValidationModule;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Bean;
+import org.apache.commons.configuration.ConfigurationException;
 
-@SpringBootApplication
 @Slf4j
 public class Application {
 
     private static final String OPT_HELP = "help";
     private static final String OPT_DEPLOY_BRANCH_NAME = "deployBranchName";
 
-    private static String deployBranchName;
-
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ConfigurationException {
 
         CommandLineParser parser = new DefaultParser();
 
@@ -28,9 +33,12 @@ public class Application {
             CommandLine line = parser.parse(options, args);
 
             if (line.hasOption(OPT_DEPLOY_BRANCH_NAME)) {
-                deployBranchName = line.getOptionValue(OPT_DEPLOY_BRANCH_NAME);
+                String deployBranchName = line.getOptionValue(OPT_DEPLOY_BRANCH_NAME);
 
-                SpringApplication.run(Application.class, args);
+                Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModule(), new SalesforceModule(), new ValidationModule());
+                OnPremiseDeploymentJob job = injector.getInstance(OnPremiseDeploymentJob.class);
+                job.setDeployBranchName(deployBranchName);
+                job.execute();
 
             } else {
                 HelpFormatter formatter = new HelpFormatter();
@@ -42,12 +50,6 @@ public class Application {
         }
 
     }
-
-    @Bean
-    public String deployBranchName(){
-        return deployBranchName;
-    }
-
 
 }
 

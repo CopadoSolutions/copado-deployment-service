@@ -26,12 +26,12 @@ public interface GitService {
 
     /**
      * Given a branch name  for a remote branch, this method will returns the object representation for this branch
-     * @param gitSession
+     * @param session
      * @param branch
      * @return
      * @throws GitServiceException
      */
-    Branch getBranch(GitSession gitSession, String branch) throws GitServiceException;
+    Branch getBranch(GitSession session, String branch) throws GitServiceException;
 
     /**
      * Checkouts the targetBranch, and merge the branchToBeMerged into the target branch.
