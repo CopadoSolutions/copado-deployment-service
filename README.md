@@ -56,13 +56,13 @@ java -jar target/copado-deployment-service-1.0.0-spring-boot.jar -help
 
 ### Service implementation
 
-This is a Spring based project, and some service implementations can be accomplished to deeper customization. Following service interfaces must be implemented to project customization:
+This is a Guice based project, and some service implementations can be accomplished to deeper customization. Following service interfaces must be implemented to project customization:
 
-| Service                                                      | Description                                                  | Bean                        |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | --------------------------- |
-| copado.onpremise.service.git.GitService                      | Git client that allows to connect and execute actions in your git repository. | gitService                  |
-| copado.onpremise.service.credential.SalesforceCredentialService | Service that allows to retrieve the   credentials for your organizations. | salesforceCredentialService |
-| copado.onpremise.service.validation.ValidationService        | Service that will allow or deny the deployment.              | validationService           |
+| Service                                                      | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| copado.onpremise.service.git.GitService                      | Git client that allows to connect and execute actions in your git repository. |
+| copado.onpremise.service.credential.SalesforceCredentialService | Service that allows to retrieve the   credentials for your organizations. |
+| copado.onpremise.service.validation.ValidationService        | Service that will allow or deny the deployment.              |
 
 All of these services includes a default implementation into the given project.
 
@@ -89,18 +89,18 @@ To deploy this project on a live system, you need to follow this steps.
 To build and package the project, run the following command
 
 ```
-mvn clean install spring-boot:repackage
+mvn clean install
 ```
 
 This will auto-generate a `jar` file in the `target` folder. For example, for version `1.0.0` the generated file will be:
 
-```target/copado-deployment-service-1.0.0-spring-boot.jar ```
+```target/copado-deployment-service-1.0.0-jar-with-dependencies.jar ```
 
 
 
 ### Deploy
 
-Deploy the **copado-deployment-service-VERSION-spring-boot.jar** into your production environment and set the environment variables in your system or add the [application.yml](./src/main/resources/application-template.yml) to the jar class-path.
+Deploy the **copado-deployment-service-VERSION-jar-with-dependencies.jar** into your production environment and set the environment variables in your system or add the [application.properties](./src/main/resources/application-template.properties) to the jar class-path.
 
 If you choose environment setting option, you will need to set following ones:
 
@@ -128,7 +128,7 @@ env "copado.onpremise.deployment.YOUR_ORG_ID.password=YOUR_ORG_PASSWORD" bash
 
 To run the project use the following command
 
-``` copado-deployment-service-1.0.0-spring-boot.jar -deployBranchName DEPLOY_BRANCH_NAME```
+``` copado-deployment-service-1.0.0-jar-with-dependencies.jar -deployBranchName DEPLOY_BRANCH_NAME```
 
 
 
