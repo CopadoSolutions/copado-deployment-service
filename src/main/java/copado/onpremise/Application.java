@@ -20,8 +20,6 @@ public class Application {
     private static final String OPT_HELP = "help";
     private static final String OPT_DEPLOY_BRANCH_NAME = "deployBranchName";
 
-    private static String deployBranchName;
-
     public static void main(String[] args) throws ConfigurationException {
 
         CommandLineParser parser = new DefaultParser();
@@ -35,7 +33,7 @@ public class Application {
             CommandLine line = parser.parse(options, args);
 
             if (line.hasOption(OPT_DEPLOY_BRANCH_NAME)) {
-                deployBranchName = line.getOptionValue(OPT_DEPLOY_BRANCH_NAME);
+                String deployBranchName = line.getOptionValue(OPT_DEPLOY_BRANCH_NAME);
 
                 Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModule(), new SalesforceModule(), new ValidationModule());
                 OnPremiseDeploymentJob job = injector.getInstance(OnPremiseDeploymentJob.class);
