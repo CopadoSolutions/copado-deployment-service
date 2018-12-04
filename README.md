@@ -47,7 +47,7 @@ mvn clean install
 * Check the project runs
 
 ```
-java -jar target/copado-deployment-service-1.0.0-spring-boot.jar -help
+java -jar target/copado-deployment-service-1.0.0-jar-with-dependencies.jar -help
 ```
 
 ​	After run this command, you will be able to see the project help usage in the command line.
