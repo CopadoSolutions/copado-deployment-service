@@ -1,13 +1,13 @@
 package copado.onpremise.service.salesforce;
 
 
-import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.*;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.exception.CopadoException;
 import lombok.AllArgsConstructor;
+import lombok.extern.flogger.Flogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,10 +16,9 @@ import java.io.IOException;
 
 
 @AllArgsConstructor(onConstructor = @__({ @Inject}))
-
+@Flogger
 public class SalesforceServiceImpl  implements  SalesforceService{
 
-    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     // one second in milliseconds
     private static final long ONE_SECOND = 1000;
     // maximum number of attempts to deploy the zip file
