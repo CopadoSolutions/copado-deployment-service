@@ -1,5 +1,6 @@
 package copado.onpremise.job;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.fault.UnexpectedErrorFault;
@@ -17,7 +18,6 @@ import copado.onpremise.service.validation.ValidationService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -30,10 +30,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Slf4j
+
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
 public class OnPremiseDeploymentJob implements Job {
 
+    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     private static final String TEMP_GIT = "git";
     private static final String TEMP_DEPLOY = "deploy";
     private static final String GIT_DEPLOY_DIR_IN_BRANCH = "deployment";
@@ -64,7 +65,7 @@ public class OnPremiseDeploymentJob implements Job {
 
     public void execute() {
 
-        log.info("Starting job. Deploy branch name: {}", deployBranchName);
+        log.atInfo().log("Starting job. Deploy branch name: %s", deployBranchName);
 
         Path gitTMP = null;
         Path deployZipFileTMPDir = null;
@@ -79,7 +80,7 @@ public class OnPremiseDeploymentJob implements Job {
             DeployRequest request = downloadAllBranchesAndReadDeploymentRequest(git);
             deploymentJobId = request.getDeploymentJobId();
             Path deployZipFileTMP = copyDeployZipToTemporalDir(gitTMP, deployZipFileTMPDir, git);
-            log.info("Deploy zip file tmp: {}", deployZipFileTMP);
+            log.atInfo().log("Deploy zip file tmp: %s", deployZipFileTMP);
             validatePromoteBranch(request, gitTMP, git, deployZipFileTMP);
 
             deployZip(request, deployZipFileTMP);
@@ -90,13 +91,13 @@ public class OnPremiseDeploymentJob implements Job {
 
 
         } catch (CopadoException e) {
-            log.error("On premise deployment failed: {}", e.getMessage());
+            log.atSevere().log("On premise deployment failed: %s", e.getMessage());
             copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (UnexpectedErrorFault e) {
-            log.error("On premise deployment failed: Code: {}, Message: {}", e.getExceptionCode(), e.getExceptionMessage(), e);
+            log.atSevere().log("On premise deployment failed: Code: %s, Message: %s", e.getExceptionCode(), e.getExceptionMessage(), e);
             copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (Exception e) {
-            log.error("On premise deployment failed: ", e);
+            log.atSevere().log("On premise deployment failed: ", e);
             copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } finally {
             pathService.safeDelete(gitTMP);
@@ -134,7 +135,7 @@ public class OnPremiseDeploymentJob implements Job {
         copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Validating deployment zip with promotion branch.");
 
         ValidationResult validationResult = validationService.validate(deployZipFileTMP, gitTMP);
-        log.info("Finished validation. Success: {}, Code: {}, Message: {}", validationResult.isSuccess(), validationResult.getCode(), validationResult.getMessage());
+        log.atInfo().log("Finished validation. Success: %s, Code: %s, Message: %s", validationResult.isSuccess(), validationResult.getCode(), validationResult.getMessage());
 
         if (!validationResult.isSuccess()) {
             throw new CopadoException("Invalid deployment zip. Code: " + validationResult.getCode() + ". Message: " + validationResult.getMessage());
@@ -153,9 +154,9 @@ public class OnPremiseDeploymentJob implements Job {
     }
 
     private Path createTemporalGitPath() throws IOException {
-        log.info("Creating git temporal dir.");
+        log.atInfo().log("Creating git temporal dir.");
         Path gitTMP = Files.createTempDirectory(TEMP_GIT);
-        log.info("Created temporal dir:'{}'", gitTMP);
+        log.atInfo().log("Created temporal dir:'%s'", gitTMP);
         return gitTMP;
     }
 

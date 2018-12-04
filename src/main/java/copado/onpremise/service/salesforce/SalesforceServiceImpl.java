@@ -1,13 +1,13 @@
 package copado.onpremise.service.salesforce;
 
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.*;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.exception.CopadoException;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -16,9 +16,10 @@ import java.io.IOException;
 
 
 @AllArgsConstructor(onConstructor = @__({ @Inject}))
-@Slf4j
+
 public class SalesforceServiceImpl  implements  SalesforceService{
 
+    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     // one second in milliseconds
     private static final long ONE_SECOND = 1000;
     // maximum number of attempts to deploy the zip file
@@ -28,7 +29,7 @@ public class SalesforceServiceImpl  implements  SalesforceService{
 
     public void deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath) throws IOException, CopadoException, ConnectionException, InterruptedException {
 
-        log.info("Deploying in salesforce zip file:{}", zipFileAbsolutePath);
+        log.atInfo().log("Deploying in salesforce zip file:%s", zipFileAbsolutePath);
         byte[] zipBytes = readZipFile(zipFileAbsolutePath);
         DeployOptions deployOptions = new DeployOptions();
         deployOptions.setPerformRetrieve(false);
@@ -55,7 +56,7 @@ public class SalesforceServiceImpl  implements  SalesforceService{
             fetchDetails = (poll % 3 == 0);
             deployResult = metadataConnection.checkDeployStatus(asyncResultId, fetchDetails);
 
-            log.info("Status is: {}", deployResult.getStatus());
+            log.atInfo().log("Status is: %s", deployResult.getStatus());
             if (!deployResult.isDone() && fetchDetails) {
                 printErrors(deployResult, "Failures for deployment in progress:\n");
             }
@@ -77,7 +78,7 @@ public class SalesforceServiceImpl  implements  SalesforceService{
             throw new CopadoException("The files were not successfully deployed");
         }
 
-        log.info("The file {} was successfully deployed", zipFileAbsolutePath);
+        log.atInfo().log("The file %s was successfully deployed", zipFileAbsolutePath);
     }
 
     /**
@@ -121,7 +122,7 @@ public class SalesforceServiceImpl  implements  SalesforceService{
 
         if (errorMessageBuilder.length() > 0) {
             errorMessageBuilder.insert(0, messageHeader);
-            log.error("Error when deploy: {}", errorMessageBuilder.toString());
+            log.atSevere().log("Error when deploy: %s", errorMessageBuilder.toString());
         }
     }
 

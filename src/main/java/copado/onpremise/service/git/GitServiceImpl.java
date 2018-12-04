@@ -1,10 +1,10 @@
 package copado.onpremise.service.git;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
@@ -18,19 +18,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor(onConstructor = @__({ @Inject}))
-@Slf4j
 class GitServiceImpl implements GitService {
 
-    private ApplicationConfiguration config;
-
+    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     private static final String ORIGIN = "origin/";
 
+    private ApplicationConfiguration config;
     private Provider<GitSession> gitSessionProvider;
     private Provider<Branch> gitBranchProvider;
 
     public GitSession cloneRepo(Path temporalDir) throws GitServiceException {
 
-        log.info("Cloning git repository ...");
+        log.atInfo().log("Cloning git repository ...");
         GitSessionImpl gitSession = castSession(gitSessionProvider.get());
 
         if (temporalDir != null) {
@@ -42,14 +41,14 @@ class GitServiceImpl implements GitService {
 
             try (Git call = cloneCommand.call()) {
 
-                log.info("Cloned repo:{}", config.getGitUrl());
+                log.atInfo().log("Cloned repo:%s", config.getGitUrl());
                 gitSession.setGit(call);
                 gitSession.setBaseDir(temporalDir);
-                log.info("Repository cloned!");
+                log.atInfo().log("Repository cloned!");
                 return gitSession;
 
             } catch (Exception e) {
-                log.error("Exception while cloning repo:", e);
+                log.atSevere().log("Exception while cloning repo:", e);
                 throw new GitServiceException("Could not clone git repository", e);
             }
         }
@@ -63,7 +62,7 @@ class GitServiceImpl implements GitService {
     public void cloneBranchFromRepo(GitSession session, String branch) throws GitServiceException {
         GitSessionImpl gitSession = castSession(session);
         // Retrieve promote-branch from repo
-        log.info("Retrieving branch:{}{}", ORIGIN, branch);
+        log.atInfo().log("Retrieving branch:%s%s", ORIGIN, branch);
         handleExceptions(() ->
                 gitSession.getGit().branchCreate()
                         .setName(branch)
@@ -77,13 +76,13 @@ class GitServiceImpl implements GitService {
         GitSessionImpl gitSession = castSession(session);
         BranchImpl toBeReturn = castBranch(gitBranchProvider.get());
         // Retrieve latest commit from branch
-        log.info("Retrieving id for branch:{}{}", ORIGIN, branch);
+        log.atInfo().log("Retrieving id for branch:%s%s", ORIGIN, branch);
 
         List<Ref> branches = handleExceptions(() -> gitSession.getGit().branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call());
         List<Ref> promoteBranchList = branches.stream().filter(b -> b.getName().endsWith(branch)).collect(Collectors.toList());
         Ref promoteBranchRef = promoteBranchList.get(0);
 
-        log.info("Id:{} for branch:{}{}", promoteBranchRef.getObjectId(), ORIGIN, branch);
+        log.atInfo().log("Id:%s for branch:%s%s", promoteBranchRef.getObjectId(), ORIGIN, branch);
 
         toBeReturn.setName(promoteBranchRef.getName());
         toBeReturn.setId(promoteBranchRef.getObjectId());
@@ -97,7 +96,7 @@ class GitServiceImpl implements GitService {
 
         checkout(session,targetBranch);
 
-        log.info("Merge into target branch, and local commit.");
+        log.atInfo().log("Merge into target branch, and local commit.");
         handleExceptions(() -> gitSession.getGit().merge()
                 .include(branch.getId()).setCommit(true).setMessage("Merge branch '" + branch.getName() + "' into '" + targetBranch + "'")
                 .call());
@@ -106,14 +105,14 @@ class GitServiceImpl implements GitService {
     public void checkout(GitSession session, String branch) throws GitServiceException {
         GitSessionImpl gitSession = castSession(session);
 
-        log.info("Checkout branch:{}", branch);
+        log.atInfo().log("Checkout branch:%s", branch);
         handleExceptions(() -> gitSession.getGit().checkout().setName(branch).call());
     }
 
     public void push(GitSession session) throws GitServiceException {
         GitSessionImpl gitSession = castSession(session);
 
-        log.info("Pushing to remote target branch");
+        log.atInfo().log("Pushing to remote target branch");
         handleExceptions(() -> gitSession.getGit().push().setCredentialsProvider(buildCredentialsProvider()).call());
     }
 
@@ -135,7 +134,7 @@ class GitServiceImpl implements GitService {
         try {
             return codeBlock.execute();
         } catch (Throwable e) {
-            log.error("Internal error in git service. Exception: " + e);
+            log.atSevere().log("Internal error in git service. Exception: " + e);
             throw new GitServiceException("Internal error in git service", e);
         }
     }

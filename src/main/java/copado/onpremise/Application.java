@@ -1,5 +1,6 @@
 package copado.onpremise;
 
+import com.google.common.flogger.FluentLogger;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import copado.onpremise.configuration.ConfigurationModule;
@@ -10,13 +11,13 @@ import copado.onpremise.service.file.FileModule;
 import copado.onpremise.service.git.GitModule;
 import copado.onpremise.service.salesforce.SalesforceModule;
 import copado.onpremise.service.validation.ValidationModule;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 import org.apache.commons.configuration.ConfigurationException;
 
-@Slf4j
+
 public class Application {
 
+    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     private static final String OPT_HELP = "help";
     private static final String OPT_DEPLOY_BRANCH_NAME = "deployBranchName";
 
@@ -46,7 +47,7 @@ public class Application {
             }
 
         } catch (ParseException e) {
-            log.error("Could not run copado deployment service. Error: {}", e.getMessage());
+            log.atSevere().log("Could not run copado deployment service. Error: %s", e.getMessage());
         }
 
     }
