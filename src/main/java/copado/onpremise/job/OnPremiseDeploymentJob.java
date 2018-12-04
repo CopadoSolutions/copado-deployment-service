@@ -1,6 +1,5 @@
 package copado.onpremise.job;
 
-import com.google.common.flogger.FluentLogger;
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.fault.UnexpectedErrorFault;
@@ -18,6 +17,7 @@ import copado.onpremise.service.validation.ValidationService;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.flogger.Flogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -32,9 +32,9 @@ import java.util.stream.Stream;
 
 
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
+@Flogger
 public class OnPremiseDeploymentJob implements Job {
 
-    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     private static final String TEMP_GIT = "git";
     private static final String TEMP_DEPLOY = "deploy";
     private static final String GIT_DEPLOY_DIR_IN_BRANCH = "deployment";

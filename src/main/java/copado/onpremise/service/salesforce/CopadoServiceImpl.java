@@ -1,23 +1,22 @@
 package copado.onpremise.service.salesforce;
 
-import com.google.common.flogger.FluentLogger;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.exception.CopadoException;
+import lombok.extern.flogger.Flogger;
 
 import javax.inject.Inject;
 
 
-
+@Flogger
 public class CopadoServiceImpl implements CopadoService {
 
     private PartnerConnection connection;
 
     private ApplicationConfiguration conf;
-    private static final FluentLogger log = FluentLogger.forEnclosingClass();
 
 
     @Inject

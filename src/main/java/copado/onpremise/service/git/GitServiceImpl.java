@@ -1,10 +1,11 @@
 package copado.onpremise.service.git;
 
-import com.google.common.flogger.FluentLogger;
+
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import lombok.AllArgsConstructor;
+import lombok.extern.flogger.Flogger;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
@@ -18,9 +19,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor(onConstructor = @__({ @Inject}))
+@Flogger
 class GitServiceImpl implements GitService {
 
-    private static final FluentLogger log = FluentLogger.forEnclosingClass();
     private static final String ORIGIN = "origin/";
 
     private ApplicationConfiguration config;

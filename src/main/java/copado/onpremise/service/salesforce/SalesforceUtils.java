@@ -1,16 +1,15 @@
 package copado.onpremise.service.salesforce;
 
-import com.google.common.flogger.FluentLogger;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
+import lombok.extern.flogger.Flogger;
 import org.apache.commons.lang.StringUtils;
 
-
+@Flogger
 class SalesforceUtils {
 
-    private static final FluentLogger log = FluentLogger.forEnclosingClass();
 
     private SalesforceUtils() {
     }
