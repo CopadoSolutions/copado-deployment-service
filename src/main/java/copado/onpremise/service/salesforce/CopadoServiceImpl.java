@@ -1,22 +1,24 @@
 package copado.onpremise.service.salesforce;
 
+import com.google.common.flogger.FluentLogger;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.exception.CopadoException;
-import lombok.extern.slf4j.Slf4j;
 
 import javax.inject.Inject;
 
 
-@Slf4j
+
 public class CopadoServiceImpl implements CopadoService {
 
     private PartnerConnection connection;
 
     private ApplicationConfiguration conf;
+    private static final FluentLogger log = FluentLogger.forEnclosingClass();
+
 
     @Inject
     public CopadoServiceImpl(ApplicationConfiguration conf) throws ConnectionException {
@@ -47,10 +49,10 @@ public class CopadoServiceImpl implements CopadoService {
      */
     public void updateDeploymentJobStatus(String id, String status) {
 
-        log.info("Updating Deployment Job[{}], Status:'{}' ", id, status);
+        log.atInfo().log("Updating Deployment Job[%s], Status:'%s' ", id, status);
 
         if (id == null) {
-            log.error("Could not update job status because id is null");
+            log.atSevere().log("Could not update job status because id is null");
             return;
         }
 
@@ -65,12 +67,12 @@ public class CopadoServiceImpl implements CopadoService {
                 throw new CopadoException("Not result found for status update");
             }
 
-            log.info("Could update status:'{}', result:'{}'", resultArr[0].getSuccess(), resultArr);
+            log.atInfo().log("Could update status:'%s', result:'%s'", resultArr[0].getSuccess(), resultArr);
 
         } catch (CopadoException e) {
-            log.error("Error updating status:'{}'", e.getMessage());
+            log.atSevere().log("Error updating status:'%s'", e.getMessage());
         } catch (Exception e) {
-            log.error("Error updating status:'{}'", e);
+            log.atSevere().log("Error updating status:'%s'", e);
         }
     }
 
