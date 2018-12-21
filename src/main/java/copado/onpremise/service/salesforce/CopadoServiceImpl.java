@@ -18,16 +18,19 @@ public class CopadoServiceImpl implements CopadoService {
 
     private ApplicationConfiguration conf;
 
+    private PartnerConnectionBuilder partnerConnectionBuilder;
+
 
     @Inject
-    public CopadoServiceImpl(ApplicationConfiguration conf) throws ConnectionException {
+    public CopadoServiceImpl(ApplicationConfiguration conf, PartnerConnectionBuilder partnerConnectionBuilder) throws ConnectionException {
         this.conf = conf;
+        this.partnerConnectionBuilder = partnerConnectionBuilder;
         init();
     }
 
     private void init() throws ConnectionException {
 
-        connection = SalesforceUtils.createPartnerConnection(
+        connection = partnerConnectionBuilder.createPartnerConnection(
                 SalesforceUtilsInfo.builder()
                         .username(conf.getCopadoUsername())
                         .password(conf.getCopadoPassword())
