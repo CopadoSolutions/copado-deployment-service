@@ -114,8 +114,8 @@ public class OnPremiseDeploymentJob implements Job {
     }
 
     private void deployZip(DeployRequest request, Path deployZipFileTMP) throws ConnectionException, IOException, CopadoException, InterruptedException {
-        MetadataConnection mc = metadataConnectionService.build(request.getOrgDestId());
-        salesforceService.deployZip(mc, deployZipFileTMP.toAbsolutePath().toString());
+        MetadataConnection destinationOrgMetadata = metadataConnectionService.build(request.getOrgDestId());
+        salesforceService.deployZip(destinationOrgMetadata, deployZipFileTMP.toAbsolutePath().toString());
 
         copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
     }
