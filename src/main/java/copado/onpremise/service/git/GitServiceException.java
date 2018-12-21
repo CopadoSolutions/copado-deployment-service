@@ -2,7 +2,7 @@ package copado.onpremise.service.git;
 
 import copado.onpremise.exception.CopadoException;
 
-class GitServiceException extends CopadoException {
+public class GitServiceException extends CopadoException {
 
     GitServiceException(String message) {
         super(message);
