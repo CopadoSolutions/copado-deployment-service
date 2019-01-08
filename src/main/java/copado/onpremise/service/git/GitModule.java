@@ -10,15 +10,4 @@ public class GitModule extends AbstractModule {
     protected void configure() {
         bind(GitService.class).to(GitServiceImpl.class);
     }
-
-    @Provides
-    GitSession gitSessionProvider(){
-        return new GitSessionImpl();
-    }
-
-    @Provides
-    Branch branchProvider(){
-        return new BranchImpl();
-    }
-
 }

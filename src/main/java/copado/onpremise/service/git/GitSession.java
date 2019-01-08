@@ -1,10 +1,14 @@
 package copado.onpremise.service.git;
 
+import lombok.Data;
+import org.eclipse.jgit.api.Git;
+
 import java.nio.file.Path;
 
+@Data
+public class GitSession {
 
-public interface GitSession {
-
-    Path getBaseDir();
+    private final Git git;
+    private final Path baseDir;
 
 }
