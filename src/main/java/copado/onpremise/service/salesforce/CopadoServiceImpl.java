@@ -68,13 +68,11 @@ public class CopadoServiceImpl implements CopadoService {
             if (resultArr == null || resultArr.length <= 0) {
                 throw new CopadoException("Not result found for status update");
             }
-
             log.atInfo().log("Could update status:'%s', result:'%s'", resultArr[0].getSuccess(), resultArr);
-
         } catch (CopadoException e) {
-            log.atSevere().log("Error updating status:'%s'", e.getMessage());
+            log.atSevere().withCause(e).log("Error updating status");
         } catch (Exception e) {
-            log.atSevere().log("Error updating status:'%s'", e);
+            log.atSevere().withCause(e).log("Error updating status:'%s'");
         }
     }
 
