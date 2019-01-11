@@ -31,6 +31,7 @@ public class SalesforceServiceImpl  implements  SalesforceService{
         log.atInfo().log("Deploying in salesforce zip file:%s", zipFileAbsolutePath);
         byte[] zipBytes = readZipFile(zipFileAbsolutePath);
         DeployOptions deployOptions = new DeployOptions();
+        deployOptions.setSinglePackage(true);
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
         AsyncResult asyncResult = metadataConnection.deploy(zipBytes, deployOptions);
