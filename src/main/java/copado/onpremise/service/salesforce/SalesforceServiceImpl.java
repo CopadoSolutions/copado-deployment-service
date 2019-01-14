@@ -6,6 +6,7 @@ import com.sforce.soap.metadata.*;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.exception.CopadoException;
+import copado.onpremise.job.DeployRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.flogger.Flogger;
 
@@ -26,14 +27,23 @@ public class SalesforceServiceImpl  implements  SalesforceService{
 
     private ApplicationConfiguration conf;
 
-    public void deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath) throws IOException, CopadoException, ConnectionException, InterruptedException {
+    public void deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath, DeployRequest deployRequest) throws IOException, CopadoException, ConnectionException, InterruptedException {
+
 
         log.atInfo().log("Deploying in salesforce zip file:%s", zipFileAbsolutePath);
         byte[] zipBytes = readZipFile(zipFileAbsolutePath);
         DeployOptions deployOptions = new DeployOptions();
+        deployOptions.setIgnoreWarnings(true);
         deployOptions.setSinglePackage(true);
         deployOptions.setPerformRetrieve(false);
         deployOptions.setRollbackOnError(true);
+        deployOptions.setCheckOnly(deployRequest.isCheckOnly());
+        deployOptions.setTestLevel(TestLevelBuilder.build(deployRequest.getTestLevel()));
+
+        if(deployOptions.getTestLevel() == TestLevel.RunSpecifiedTests){
+            deployOptions.setRunTests(deployRequest.getTestClasses().toArray(new String[0]));
+        }
+
         AsyncResult asyncResult = metadataConnection.deploy(zipBytes, deployOptions);
         String asyncResultId = asyncResult.getId();
 
