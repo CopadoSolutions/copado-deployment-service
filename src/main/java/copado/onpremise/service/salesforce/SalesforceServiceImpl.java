@@ -41,6 +41,9 @@ public class SalesforceServiceImpl  implements  SalesforceService{
         deployOptions.setTestLevel(TestLevelBuilder.build(deployRequest.getTestLevel()));
 
         if(deployOptions.getTestLevel() == TestLevel.RunSpecifiedTests){
+            if(deployRequest.getTestClasses() == null){
+                throw new CopadoException("Test classes not found and they are needed in order to run specified tests.");
+            }
             deployOptions.setRunTests(deployRequest.getTestClasses().toArray(new String[0]));
         }
 
