@@ -9,6 +9,7 @@ import copado.onpremise.service.credential.CredentialModule;
 import copado.onpremise.service.file.FileModule;
 import copado.onpremise.service.git.GitModule;
 import copado.onpremise.service.salesforce.SalesforceModule;
+import copado.onpremise.service.salesforce.dx.DxModule;
 import copado.onpremise.service.validation.ValidationModule;
 import lombok.extern.flogger.Flogger;
 import org.apache.commons.cli.*;
@@ -35,7 +36,7 @@ public class Application {
             if (line.hasOption(OPT_DEPLOY_BRANCH_NAME)) {
                 String deployBranchName = line.getOptionValue(OPT_DEPLOY_BRANCH_NAME);
 
-                Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModule(), new SalesforceModule(), new ValidationModule());
+                Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModule(), new SalesforceModule(), new ValidationModule(), new DxModule());
                 OnPremiseDeploymentJob job = injector.getInstance(OnPremiseDeploymentJob.class);
                 job.setDeployBranchName(deployBranchName);
                 job.execute();

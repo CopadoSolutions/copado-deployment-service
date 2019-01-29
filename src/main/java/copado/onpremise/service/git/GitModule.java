@@ -8,7 +8,9 @@ public class GitModule extends AbstractModule {
 
     @Override
     protected void configure() {
+
         bind(GitService.class).to(GitServiceImpl.class);
+        bind(GitServiceRemote.class).to(GitServiceRemoteImpl.class);
     }
 
     @Provides

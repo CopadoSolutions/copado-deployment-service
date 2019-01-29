@@ -2,11 +2,12 @@ package copado.onpremise.service.salesforce;
 
 
 import com.sforce.soap.metadata.MetadataConnection;
-import com.sforce.ws.ConnectionException;
+import com.sforce.soap.partner.PartnerConnection;
+import com.sforce.soap.partner.sobject.SObject;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.job.DeployRequest;
 
-import java.io.IOException;
+import java.util.List;
 
 
 public interface SalesforceService {
@@ -16,6 +17,13 @@ public interface SalesforceService {
      * Prerequisite: Have a deploy.zip file that includes a package.xml manifest file that
      * details the contents of the zip file.
      */
-    void deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath, DeployRequest deployRequest) throws IOException, CopadoException, ConnectionException, InterruptedException;
+    DeploymentResult deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath, DeployRequest deployRequest, SalesforceDeployerDelegate delegate) throws CopadoException;
+
+    List<SObject> query(PartnerConnection partnerConnection, String query) throws CopadoException;
+
+    void updateStringField(PartnerConnection partnerConnection, String id, String objectType, String fieldName, String value) throws CopadoException;
+
+    String createTxtAttachment(PartnerConnection partnerConnection, String parentId, String attachmentName, String attachmentContent) throws CopadoException ;
+
 
 }

@@ -1,7 +1,6 @@
 package copado.onpremise.service.salesforce;
 
 import com.sforce.soap.partner.PartnerConnection;
-import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
@@ -9,6 +8,7 @@ import copado.onpremise.exception.CopadoException;
 import lombok.extern.flogger.Flogger;
 
 import javax.inject.Inject;
+import java.util.List;
 
 
 @Flogger
@@ -20,6 +20,7 @@ public class CopadoServiceImpl implements CopadoService {
 
     private PartnerConnectionBuilder partnerConnectionBuilder;
 
+    private SalesforceService salesforceService;
 
     @Inject
     public CopadoServiceImpl(ApplicationConfiguration conf, PartnerConnectionBuilder partnerConnectionBuilder) throws ConnectionException {
@@ -44,38 +45,101 @@ public class CopadoServiceImpl implements CopadoService {
         );
     }
 
-    /**
-     * ID por param
-     * <p>
-     * Deployer.java
-     */
+
+
+    @Override
     public void updateDeploymentJobStatus(String id, String status) {
-
-        log.atInfo().log("Updating Deployment Job[%s], Status:'%s' ", id, status);
-
-        if (id == null) {
-            log.atSevere().log("Could not update job status because id is null");
-            return;
-        }
-
-        SObject object = new SObject();
-        object.setType(getNamespace() + "Deployment_Job__c");
-        object.setField(getNamespace() + "Status__c", status);
-        object.setId(id);
-
         try {
-            SaveResult[] resultArr = connection.update(new SObject[]{object});
-            if (resultArr == null || resultArr.length <= 0) {
-                throw new CopadoException("Not result found for status update");
-            }
-
-            log.atInfo().log("Could update status:'%s', result:'%s'", resultArr[0].getSuccess(), resultArr);
-
+            salesforceService.updateStringField(connection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Status__c", status);
         } catch (CopadoException e) {
-            log.atSevere().log("Error updating status:'%s'", e.getMessage());
-        } catch (Exception e) {
-            log.atSevere().log("Error updating status:'%s'", e);
+            log.atSevere().withCause(e).log("Could not update deployment status");
         }
+    }
+
+    @Override
+    public void updateDeploymentJobValidationId(String id, String validationId) throws CopadoException {
+        salesforceService.updateStringField(connection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Validation_ID__c", validationId);
+    }
+
+    @Override
+    public void updateDeploymentJobAsyncId(String id, String asyncId) throws CopadoException {
+        salesforceService.updateStringField(connection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Async_Job_ID__c", asyncId);
+    }
+
+    @Override
+    public String getSourceOrgId(String deploymentJobId) throws CopadoException {
+
+        log.atInfo().log("Reading source org id for deployment job[%s]", deploymentJobId);
+        if (deploymentJobId == null) {
+            log.atSevere().log("Invalid deployment job id");
+            throw new CopadoException("Invalid deployment job id");
+        }
+
+        List<SObject> result;
+        try {
+            result = salesforceService.query(connection, buildGetSourceOrgIdQuery(deploymentJobId));
+        } catch (CopadoException e) {
+            log.atSevere().withCause(e).log("Search for source org identifier failed");
+            throw new CopadoException("Search for source org identifier failed");
+        }
+
+        if (result.size() != 1) {
+            log.atSevere().log("Unexpected result size for source org identifier: %s", result.size());
+            throw new CopadoException("Unexpected result size for source org identifier: " + result.size());
+        }
+
+        String sourceOrgId = (String) result.get(0)
+                .getChild("copado__Step__r")
+                .getChild("copado__Deployment__r")
+                .getChild("copado__From_Org__r")
+                .getChild("copado__Environment__r")
+                .getField("copado__Org_ID__c");
+
+        log.atInfo().log("Retrieved source org id: %s", sourceOrgId);
+        return sourceOrgId;
+    }
+
+    public String getDeploymentId(String deploymentJobId) throws CopadoException {
+        //TODO:: Sigo aqui
+
+        log.atInfo().log("Reading deployment identifier for deployment job[%s]", deploymentJobId);
+        if (deploymentJobId == null) {
+            log.atSevere().log("Invalid deployment job id");
+            throw new CopadoException("Invalid deployment job id");
+        }
+
+        String query = String.format("SELECT copado__Step__r.copado__Deployment__r.Id FROM copado__Deployment_Job__c WHERE Id = '%s'", deploymentJobId);
+        List<SObject> result;
+        try {
+            result = salesforceService.query(connection, query);
+        } catch (CopadoException e) {
+            log.atSevere().withCause(e).log("Search for deployment identifier failed");
+            throw new CopadoException("Search for deployment identifier failed");
+        }
+
+        if (result.size() != 1) {
+            String errorMessage = String.format("Unexpected result size for deployment identifier: %s", result.size());
+            log.atSevere().log(errorMessage);
+            throw new CopadoException(errorMessage);
+        }
+
+        String sourceOrgId = (String) result.get(0)
+                .getChild("copado__Step__r")
+                .getChild("copado__Deployment__r")
+                .getField("Id");
+
+        log.atInfo().log("Retrieved deployment identifier: %s", sourceOrgId);
+        return sourceOrgId;
+
+    }
+
+    @Override
+    public String createTxtAttachment(String parentId, String attachmentName, String attachmentContent) throws CopadoException {
+        return salesforceService.createTxtAttachment(connection, parentId, attachmentName, attachmentContent);
+    }
+
+    private String buildGetSourceOrgIdQuery(String deploymentJobId) {
+        return String.format("SELECT copado__Step__r.copado__Deployment__r.copado__From_Org__r.copado__Environment__r.copado__Org_ID__c FROM copado__Deployment_Job__c WHERE Id = '%s'", deploymentJobId);
     }
 
 
