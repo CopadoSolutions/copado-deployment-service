@@ -7,6 +7,7 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.nio.file.Path;
 
+
 class GitServiceRemoteImpl implements GitServiceRemote {
 
     @Override

@@ -1,10 +1,11 @@
 package copado.onpremise.service.credential;
 
 
+import com.google.inject.Inject;
 import lombok.AllArgsConstructor;
 import org.apache.commons.configuration.CompositeConfiguration;
 
-@AllArgsConstructor
+@AllArgsConstructor(onConstructor = @__({ @Inject}))
 class PropertyCredentialsProvider {
 
     private CompositeConfiguration compositeConfiguration;

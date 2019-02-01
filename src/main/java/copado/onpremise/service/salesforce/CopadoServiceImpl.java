@@ -10,7 +10,6 @@ import lombok.extern.flogger.Flogger;
 import javax.inject.Inject;
 import java.util.List;
 
-
 @Flogger
 public class CopadoServiceImpl implements CopadoService {
 
@@ -23,9 +22,10 @@ public class CopadoServiceImpl implements CopadoService {
     private SalesforceService salesforceService;
 
     @Inject
-    public CopadoServiceImpl(ApplicationConfiguration conf, PartnerConnectionBuilder partnerConnectionBuilder) throws ConnectionException {
+    public CopadoServiceImpl(ApplicationConfiguration conf, PartnerConnectionBuilder partnerConnectionBuilder, SalesforceService salesforceService) throws ConnectionException {
         this.conf = conf;
         this.partnerConnectionBuilder = partnerConnectionBuilder;
+        this.salesforceService = salesforceService;
         init();
     }
 
@@ -44,7 +44,6 @@ public class CopadoServiceImpl implements CopadoService {
                         .build()
         );
     }
-
 
 
     @Override
