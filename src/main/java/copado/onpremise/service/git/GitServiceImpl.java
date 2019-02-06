@@ -25,10 +25,14 @@ class GitServiceImpl implements GitService {
     private static final String ORIGIN = "origin/";
 
     private ApplicationConfiguration config;
+    private Provider<GitSession> gitSessionProvider;
+    private Provider<Branch> gitBranchProvider;
 
     public GitSession cloneRepo(Path temporalDir) throws GitServiceException {
 
         log.atInfo().log("Cloning git repository ...");
+        GitSessionImpl gitSession = castSession(gitSessionProvider.get());
+
         if (temporalDir != null) {
             CloneCommand cloneCommand = Git.cloneRepository()
                     .setURI(config.getGitUrl())
@@ -39,8 +43,10 @@ class GitServiceImpl implements GitService {
             try (Git call = cloneCommand.call()) {
 
                 log.atInfo().log("Cloned repo:%s", config.getGitUrl());
+                gitSession.setGit(call);
+                gitSession.setBaseDir(temporalDir);
                 log.atInfo().log("Repository cloned!");
-                return new GitSession(call, temporalDir);
+                return gitSession;
 
             } catch (Exception e) {
                 log.atSevere().log("Exception while cloning repo:", e);
@@ -55,10 +61,11 @@ class GitServiceImpl implements GitService {
     }
 
     public void cloneBranchFromRepo(GitSession session, String branch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
         // Retrieve promote-branch from repo
         log.atInfo().log("Retrieving branch:%s%s", ORIGIN, branch);
         handleExceptions(() ->
-                session.getGit().branchCreate()
+                gitSession.getGit().branchCreate()
                         .setName(branch)
                         .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.SET_UPSTREAM)
                         .setStartPoint(ORIGIN + branch)
@@ -67,37 +74,61 @@ class GitServiceImpl implements GitService {
 
 
     public Branch getBranch(GitSession session, String branch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+        BranchImpl toBeReturn = castBranch(gitBranchProvider.get());
         // Retrieve latest commit from branch
         log.atInfo().log("Retrieving id for branch:%s%s", ORIGIN, branch);
 
-        List<Ref> branches = handleExceptions(() -> session.getGit().branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call());
+        List<Ref> branches = handleExceptions(() -> gitSession.getGit().branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call());
         List<Ref> promoteBranchList = branches.stream().filter(b -> b.getName().endsWith(branch)).collect(Collectors.toList());
         Ref promoteBranchRef = promoteBranchList.get(0);
 
         log.atInfo().log("Id:%s for branch:%s%s", promoteBranchRef.getObjectId(), ORIGIN, branch);
 
-        return new Branch(promoteBranchRef.getName(), promoteBranchRef.getObjectId());
+        toBeReturn.setName(promoteBranchRef.getName());
+        toBeReturn.setId(promoteBranchRef.getObjectId());
+
+        return toBeReturn;
     }
 
     public void mergeWithBranch(GitSession session, Branch branchToBeMerged, String targetBranch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+        BranchImpl branch = castBranch(branchToBeMerged);
+
         checkout(session,targetBranch);
 
         log.atInfo().log("Merge into target branch, and local commit.");
-        handleExceptions(() -> session.getGit().merge()
-                .include(branchToBeMerged.getId())
-                .setCommit(true)
-                .setMessage("Merge branch '" + branchToBeMerged.getName() + "' into '" + targetBranch + "'")
+        handleExceptions(() -> gitSession.getGit().merge()
+                .include(branch.getId()).setCommit(true).setMessage("Merge branch '" + branch.getName() + "' into '" + targetBranch + "'")
                 .call());
     }
 
     public void checkout(GitSession session, String branch) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+
         log.atInfo().log("Checkout branch:%s", branch);
-        handleExceptions(() -> session.getGit().checkout().setName(branch).call());
+        handleExceptions(() -> gitSession.getGit().checkout().setName(branch).call());
     }
 
     public void push(GitSession session) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+
         log.atInfo().log("Pushing to remote target branch");
-        handleExceptions(() -> session.getGit().push().setCredentialsProvider(buildCredentialsProvider()).call());
+        handleExceptions(() -> gitSession.getGit().push().setCredentialsProvider(buildCredentialsProvider()).call());
+    }
+
+    private GitSessionImpl castSession(GitSession gitSession) throws GitServiceException {
+        if (gitSession instanceof GitSessionImpl) {
+            return (GitSessionImpl) gitSession;
+        }
+        throw new GitServiceException("Could not cast git-session to " + GitSessionImpl.class.getCanonicalName());
+    }
+
+    private BranchImpl castBranch(Branch branch) throws GitServiceException {
+        if (branch instanceof BranchImpl) {
+            return (BranchImpl) branch;
+        }
+        throw new GitServiceException("Could not cast branch to " + BranchImpl.class.getCanonicalName());
     }
 
     private <T> T handleExceptions(GitServiceImpl.GitCodeBlock<T> codeBlock) throws GitServiceException {
