@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Builder
 @Data
-class SalesforceUtilsInfo {
+public class SalesforceUtilsInfo {
 
     private String username;
     private String password;

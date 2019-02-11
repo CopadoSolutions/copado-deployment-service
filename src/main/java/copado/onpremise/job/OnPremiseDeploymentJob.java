@@ -91,13 +91,13 @@ public class OnPremiseDeploymentJob implements Job {
 
 
         } catch (CopadoException e) {
-            log.atSevere().log("On premise deployment failed: %s", e.getMessage());
+            log.atSevere().withCause(e).log("On premise deployment failed");
             copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (UnexpectedErrorFault e) {
-            log.atSevere().log("On premise deployment failed: Code: %s, Message: %s", e.getExceptionCode(), e.getExceptionMessage(), e);
+            log.atSevere().withCause(e).log("On premise deployment failed");
             copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (Exception e) {
-            log.atSevere().log("On premise deployment failed: ", e);
+            log.atSevere().withCause(e).log("On premise deployment failed");
             copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } finally {
             pathService.safeDelete(gitTMP);
