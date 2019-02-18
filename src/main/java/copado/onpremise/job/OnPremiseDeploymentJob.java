@@ -114,7 +114,7 @@ public class OnPremiseDeploymentJob implements Job {
 
             if (!request.isCheckOnly()) {
                 copadoService.updateDeploymentJobValidationId(request.getDeploymentJobId(), deploymentResult.getAsyncId());
-                copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
+               // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
                 tips.addAll(mergeAndPushDeployment(request, git));
             }
 
@@ -128,7 +128,7 @@ public class OnPremiseDeploymentJob implements Job {
     }
 
     private void uploadTipsAttachmentToDeployment(DeployRequest request, final List<CopadoTip> tips) throws CopadoException {
-        copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Preparing error messages from result.");
+       // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Preparing error messages from result.");
         String tipsJson = buildTipListJson(tips);
         String deploymentId = copadoService.getDeploymentId(request.getDeploymentJobId());
         String tipsJsonAttachmentName = request.getDeploymentJobId() + ".json";
@@ -311,7 +311,7 @@ public class OnPremiseDeploymentJob implements Job {
 
     private void validatePromoteBranch(DeployRequest request, Path gitTMP, GitSession git, Path deployZipFileTMP) throws CopadoException {
         gitService.checkout(git, request.getPromoteBranch());
-        copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Validating deployment zip with promotion branch.");
+        // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Validating deployment zip with promotion branch.");
 
         ValidationResult validationResult = validationService.validate(deployZipFileTMP, gitTMP);
         log.atInfo().log("Finished validation. Success: %s, Code: %s, Message: %s", validationResult.isSuccess(), validationResult.getCode(), validationResult.getMessage());
@@ -340,7 +340,8 @@ public class OnPremiseDeploymentJob implements Job {
     }
 
     private String buildErrorStatus(Throwable e) {
-        return "On premise deployment failed:" + e.getMessage();
+        return "Failed";
+        //return "On premise deployment failed:" + e.getMessage();
     }
 
     private void copyDeployZipToTemporalDir(GitSession gitSession, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws IOException, CopadoException {
