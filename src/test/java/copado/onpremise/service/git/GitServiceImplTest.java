@@ -4,6 +4,7 @@ import copado.onpremise.configuration.ApplicationConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -31,6 +32,7 @@ public class GitServiceImplTest {
     }
 
 
+    @Ignore
     @Test
     public void cloneRepo() throws  GitServiceException {
 
@@ -46,7 +48,7 @@ public class GitServiceImplTest {
 
     }
 
-
+    @Ignore
     @Test
     public void test_write_file_withexistingdirWiththesamename() throws IOException {
         Path tmpDir = Files.createTempDirectory("test");
