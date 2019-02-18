@@ -3,7 +3,6 @@ package copado.onpremise.job;
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.ws.ConnectionException;
-import com.sun.istack.internal.NotNull;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.service.credential.GitCredentialService;
 import copado.onpremise.service.file.PathService;
@@ -68,7 +67,7 @@ public class OnPremiseDeploymentJob implements Job {
     @NonNull
     private CopadoDxService copadoDxService;
 
-    @NotNull
+    @NonNull
     private GitCredentialService gitCredentialService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
