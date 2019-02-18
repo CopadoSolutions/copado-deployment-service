@@ -5,18 +5,14 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(GitService.class)
+//@RunWith(PowerMockRunner.class)
+//@PrepareForTest(GitService.class)
 public class GitServiceImplTest {
 
     private Path baseDirGit;
@@ -33,7 +29,7 @@ public class GitServiceImplTest {
 
 
     @Ignore
-    @Test
+  //  @Test
     public void cloneRepo() throws  GitServiceException {
 
         ApplicationConfiguration configuration = ApplicationConfiguration.builder()
@@ -49,7 +45,7 @@ public class GitServiceImplTest {
     }
 
     @Ignore
-    @Test
+   // @Test
     public void test_write_file_withexistingdirWiththesamename() throws IOException {
         Path tmpDir = Files.createTempDirectory("test");
         Path gitIgnoreDir = tmpDir.resolve(".gitignore");
@@ -59,5 +55,9 @@ public class GitServiceImplTest {
 
         Files.write(gitIgnoreDir, Arrays.asList("Line 1", "Line 2"));
 
+    }
+
+    public void doTest(){
+        System.out.println("testing");
     }
 }
