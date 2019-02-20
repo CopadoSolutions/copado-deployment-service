@@ -88,11 +88,11 @@ public class CopadoServiceImpl implements CopadoService {
         }
 
         String sourceOrgId = (String) result.get(0)
-                .getChild("copado__Step__r")
-                .getChild("copado__Deployment__r")
-                .getChild("copado__From_Org__r")
-                .getChild("copado__Environment__r")
-                .getField("copado__Org_ID__c");
+                .getChild(replaceCopadoNamespace("copado__Step__r"))
+                .getChild(replaceCopadoNamespace("copado__Deployment__r"))
+                .getChild(replaceCopadoNamespace("copado__From_Org__r"))
+                .getChild(replaceCopadoNamespace("copado__Environment__r"))
+                .getField(replaceCopadoNamespace("copado__Org_ID__c"));
 
         log.atInfo().log("Retrieved source org id: %s", sourceOrgId);
         return sourceOrgId;
@@ -107,7 +107,7 @@ public class CopadoServiceImpl implements CopadoService {
             throw new CopadoException("Invalid deployment job id");
         }
 
-        String query = String.format("SELECT copado__Step__r.copado__Deployment__r.Id FROM copado__Deployment_Job__c WHERE Id = '%s'", deploymentJobId);
+        String query = String.format(replaceCopadoNamespace("SELECT copado__Step__r.copado__Deployment__r.Id FROM copado__Deployment_Job__c WHERE Id = '%s'"), deploymentJobId);
         List<SObject> result;
         try {
             result = salesforceService.query(connection, query);
@@ -123,8 +123,8 @@ public class CopadoServiceImpl implements CopadoService {
         }
 
         String sourceOrgId = (String) result.get(0)
-                .getChild("copado__Step__r")
-                .getChild("copado__Deployment__r")
+                .getChild(replaceCopadoNamespace("copado__Step__r"))
+                .getChild(replaceCopadoNamespace("copado__Deployment__r"))
                 .getField("Id");
 
         log.atInfo().log("Retrieved deployment identifier: %s", sourceOrgId);
@@ -138,9 +138,12 @@ public class CopadoServiceImpl implements CopadoService {
     }
 
     private String buildGetSourceOrgIdQuery(String deploymentJobId) {
-        return String.format("SELECT copado__Step__r.copado__Deployment__r.copado__From_Org__r.copado__Environment__r.copado__Org_ID__c FROM copado__Deployment_Job__c WHERE Id = '%s'", deploymentJobId);
+        return String.format(replaceCopadoNamespace("SELECT copado__Step__r.copado__Deployment__r.copado__From_Org__r.copado__Environment__r.copado__Org_ID__c FROM copado__Deployment_Job__c WHERE Id = '%s'"), deploymentJobId);
     }
 
+    private String replaceCopadoNamespace(String originalStr){
+        return originalStr.replace("copado__", getNamespace());
+    }
 
     private String getNamespace() {
         String ns = conf.getRenameNamespace();
