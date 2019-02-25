@@ -250,7 +250,7 @@ public class OnPremiseDeploymentJob implements Job {
 
     private void mergeIfItIsNotDxSource(DeployRequest request, GitSession git) throws CopadoException {
         if (!copadoDxService.isDxSource(request.getPromoteBranch(), copadoService.getSourceOrgId(request.getDeploymentJobId()))) {
-            if (!gitService.hasDifferences(git, request.getPromoteBranch(), request.getTargetBranch())) {
+            if (gitService.hasDifferences(git, request.getPromoteBranch(), request.getTargetBranch())) {
                 Branch gitTargetBranch = gitService.getBranch(git, request.getTargetBranch());
                 Branch gitPromotionBranch = gitService.getBranch(git, request.getPromoteBranch());
 
