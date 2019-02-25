@@ -9,6 +9,7 @@ import lombok.extern.flogger.Flogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jgit.api.*;
+import org.eclipse.jgit.api.errors.EmptyCommitException;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.ObjectReader;
@@ -16,6 +17,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
@@ -143,14 +145,20 @@ class GitServiceImpl implements GitService {
 
         log.atInfo().log("Checking differences between branches. Source: %s, Target: %s", sourceBranch, targetBranch);
 
+
+
         handleExceptions(() ->
-                gitSession.getGit().fetch().setRefSpecs(sourceBranch, targetBranch).call());
+                gitSession.getGit()
+                        .fetch()
+                        .setCredentialsProvider(buildCredentialsProvider(session.getGitCredentials()))
+                        .setRefSpecs(buildBranchRefSpec(sourceBranch), buildBranchRefSpec(targetBranch))
+                        .call());
 
-        String sourceBranchRef = getRemoteBranchRef(sourceBranch);
-        String targetBranchRef = getRemoteBranchRef(targetBranch);
+        String sourceBranchRemoteRef = getRemoteBranchRef(sourceBranch);
+        String targetBranchRemoteRef = getRemoteBranchRef(targetBranch);
 
-        AbstractTreeIterator oldTreeParser = prepareTreeParser(gitSession.getGit(), sourceBranchRef);
-        AbstractTreeIterator newTreeParser = prepareTreeParser(gitSession.getGit(), targetBranchRef);
+        AbstractTreeIterator oldTreeParser = prepareTreeParser(gitSession.getGit(), sourceBranchRemoteRef);
+        AbstractTreeIterator newTreeParser = prepareTreeParser(gitSession.getGit(), targetBranchRemoteRef);
 
         List<DiffEntry> diffEntries = handleExceptions(() ->
                 gitSession.getGit().diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).call());
@@ -175,7 +183,15 @@ class GitServiceImpl implements GitService {
     @Override
     public void fetchBranch(GitSession session, String branchName) throws GitServiceException {
         GitSessionImpl gitSession = castSession(session);
-        handleExceptions(() -> gitSession.getGit().fetch().setRefSpecs(getRemoteBranchRef(branchName)).call());
+
+        RefSpec spec = buildBranchRefSpec(branchName);
+
+        handleExceptions(() ->
+                gitSession.getGit()
+                        .fetch()
+                        .setCredentialsProvider(buildCredentialsProvider(session.getGitCredentials()))
+                        .setRefSpecs(spec)
+                        .call());
     }
 
     @Override
@@ -194,6 +210,9 @@ class GitServiceImpl implements GitService {
 
         try {
             commitCommand.call();
+        } catch (EmptyCommitException e){
+            String errorMessage = String.format("Could not commit with message: '%s'", message);
+            log.atWarning().withCause(e).log(errorMessage);
         } catch (GitAPIException e) {
             String errorMessage = String.format("Could not commit with message: '%s'", message);
             log.atSevere().withCause(e).log(errorMessage);
@@ -250,6 +269,10 @@ class GitServiceImpl implements GitService {
 
     private String getRemoteBranchRef(String branch) {
         return REFS_REMOTE_ORIGIN_PREFFIX + branch;
+    }
+
+    private RefSpec buildBranchRefSpec(String branch){
+        return new RefSpec().setSourceDestination("refs/heads/" + branch, "refs/remotes/" + ORIGIN + branch);
     }
 
     private AbstractTreeIterator prepareTreeParser(Git git, String ref) throws GitServiceException {

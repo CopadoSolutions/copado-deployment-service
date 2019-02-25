@@ -114,7 +114,7 @@ public class OnPremiseDeploymentJob implements Job {
 
             if (!request.isCheckOnly()) {
                 copadoService.updateDeploymentJobValidationId(request.getDeploymentJobId(), deploymentResult.getAsyncId());
-               // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
+                // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
                 tips.addAll(mergeAndPushDeployment(request, git));
             }
 
@@ -128,11 +128,14 @@ public class OnPremiseDeploymentJob implements Job {
     }
 
     private void uploadTipsAttachmentToDeployment(DeployRequest request, final List<CopadoTip> tips) throws CopadoException {
-       // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Preparing error messages from result.");
-        String tipsJson = buildTipListJson(tips);
-        String deploymentId = copadoService.getDeploymentId(request.getDeploymentJobId());
-        String tipsJsonAttachmentName = request.getDeploymentJobId() + ".json";
-        copadoService.createTxtAttachment(deploymentId, tipsJsonAttachmentName, tipsJson);
+        // copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Preparing error messages from result.");
+        log.atInfo().log("Number of tips to be saved: {}", tips.size());
+        if (!tips.isEmpty()) {
+            String tipsJson = buildTipListJson(tips);
+            String deploymentId = copadoService.getDeploymentId(request.getDeploymentJobId());
+            String tipsJsonAttachmentName = request.getDeploymentJobId() + ".json";
+            copadoService.createTxtAttachment(deploymentId, tipsJsonAttachmentName, tipsJson);
+        }
     }
 
     private String buildTipListJson(final List<CopadoTip> tips) throws CopadoException {
@@ -159,7 +162,7 @@ public class OnPremiseDeploymentJob implements Job {
 
         request.getArtifactRepositoryIds().forEach(artifactRepositoryId -> cloneAndMergeArtifact(artifactRepositoryErrors, artifactRepositoryId));
 
-        if(!artifactRepositoryErrors.isEmpty()){
+        if (!artifactRepositoryErrors.isEmpty()) {
 
             return artifactRepositoryErrors
                     .stream()

@@ -2,6 +2,7 @@ package copado.onpremise.job;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -12,11 +13,11 @@ public class DeployRequest {
     private String copadoJobId;
     private String orgDestId;
     private String testLevel;
-    private List<String> testClasses;
+    private List<String> testClasses = new ArrayList<>();
     private boolean isCheckOnly;
     private String gitAuthor;
     private String gitAuthorEmail;
-    private List<String> artifactRepositoryIds;
+    private List<String> artifactRepositoryIds = new ArrayList<>();
 
 }
 
