@@ -109,16 +109,16 @@ class GitServiceImpl implements GitService {
         BranchImpl branch = castBranch(branchToBeMerged);
 
         checkout(session, targetBranch);
-        // ObjectId base = getHead(gitSession.getGit()).getId();
-        MergeCommand.FastForwardMode fastForwardMode = MergeCommand.FastForwardMode.NO_FF;
 
-        log.atInfo().log("Merge into target branch, and local commit.");
+        MergeCommand.FastForwardMode fastForwardMode = MergeCommand.FastForwardMode.NO_FF;
+        String commitMessage = "Merge branch '" + branch.getName() + "' into '" + targetBranch + "'";
+
+        log.atInfo().log("%s with fast-forward mode.", commitMessage);
         handleExceptions(() -> gitSession.getGit().merge()
                 .include(branch.getId())
                 .setCommit(true)
                 .setFastForward(fastForwardMode)
-                .setMessage("Merge branch '" + branch.getName() + "' into '" + targetBranch + "'")
-
+                .setMessage(commitMessage)
                 .call());
 
     }
@@ -144,7 +144,6 @@ class GitServiceImpl implements GitService {
         GitSessionImpl gitSession = castSession(session);
 
         log.atInfo().log("Checking differences between branches. Source: %s, Target: %s", sourceBranch, targetBranch);
-
 
 
         handleExceptions(() ->
@@ -210,7 +209,7 @@ class GitServiceImpl implements GitService {
 
         try {
             commitCommand.call();
-        } catch (EmptyCommitException e){
+        } catch (EmptyCommitException e) {
             String errorMessage = String.format("Could not commit with message: '%s'", message);
             log.atWarning().withCause(e).log(errorMessage);
         } catch (GitAPIException e) {
@@ -271,7 +270,7 @@ class GitServiceImpl implements GitService {
         return REFS_REMOTE_ORIGIN_PREFFIX + branch;
     }
 
-    private RefSpec buildBranchRefSpec(String branch){
+    private RefSpec buildBranchRefSpec(String branch) {
         return new RefSpec().setSourceDestination("refs/heads/" + branch, "refs/remotes/" + ORIGIN + branch);
     }
 

@@ -218,6 +218,7 @@ public class OnPremiseDeploymentJob implements Job {
     private void mergeBranchForArtifact(List<String> artifactRepositoryErrors, String artifactRepositoryId, GitSession gitSession, Branch deploymentBranch) {
         try {
             gitService.mergeWithNoFastForward(gitSession, deploymentBranch, "master");
+            gitService.push(gitSession);
         } catch (CopadoException e) {
             String errorMessage = String.format("Could not merge branch '%s' for artifact repository '%s'", deploymentBranch, artifactRepositoryId);
             log.atSevere().withCause(e).log(errorMessage);
