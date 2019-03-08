@@ -42,7 +42,7 @@ mvn clean install
 
   * As application.properties or application.yml
 
-  You can find a list with all the needed properties here [application-template.yml](./src/main/resources/application-template.yml)
+  You can find a list with all the needed properties here [application-template.properties](./src/main/resources/application-template.properties)
 
 * Check the project runs
 
@@ -102,7 +102,7 @@ This will auto-generate a `jar` file in the `target` folder. For example, for ve
 
 Deploy the **copado-deployment-service-VERSION-jar-with-dependencies.jar** into your production environment and set the environment variables in your system or add the [application.properties](./src/main/resources/application-template.properties) to the jar class-path.
 
-If you choose environment setting option, you will need to set all the settings defined on the file  [application-template.yml](./src/main/resources/application-template.yml). In order configure them, you can follow this command line example:
+If you choose environment setting option, you will need to set all the settings defined on the file  [application-template.properties](./src/main/resources/application-template.properties). In order configure them, you can follow this command line example:
 
 ``` 
 env "copado.onpremise.deployment.copadoUsername=YOUR_COPADO_USERNAME" bash
