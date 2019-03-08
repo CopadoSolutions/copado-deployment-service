@@ -102,24 +102,10 @@ This will auto-generate a `jar` file in the `target` folder. For example, for ve
 
 Deploy the **copado-deployment-service-VERSION-jar-with-dependencies.jar** into your production environment and set the environment variables in your system or add the [application.properties](./src/main/resources/application-template.properties) to the jar class-path.
 
-If you choose environment setting option, you will need to set following ones:
+If you choose environment setting option, you will need to set all the settings defined on the file  [application-template.yml](./src/main/resources/application-template.yml). In order configure them, you can follow this command line example:
 
 ``` 
 env "copado.onpremise.deployment.copadoUsername=YOUR_COPADO_USERNAME" bash
-env "copado.onpremise.deployment.copadoUrl=YOUR_COPADO_BASE_URL/services/Soap/u/43.0" bash
-env "copado.onpremise.deployment.copadoPassword=YOUR_COPADO_PASSWORD" bash
-env "copado.onpremise.deployment.copadoToken=YOUR_COPADO_TOKEN" bash
-
-# (Optional - Just for default implementation)
-# (GitService)
-env "copado.onpremise.deployment.gitUrl=YOUR_REPOSITORY_URL.git" bash
-env "copado.onpremise.deployment.gitUsername=YOUR_GIT_USERNAME" bash
-env "copado.onpremise.deployment.gitPassword=YOUR_GIT_TOKEN" bash
-# (SalesforceCredentialService)
-env "copado.onpremise.deployment.YOUR_ORG_ID.url=YOUR_ORG_BASE_URL/services/Soap/u/43.0" bash
-env "copado.onpremise.deployment.YOUR_ORG_ID.username=YOUR_ORG_USER" bash
-env "copado.onpremise.deployment.YOUR_ORG_ID.token=YOUR_ORG_TOKEN" bash
-env "copado.onpremise.deployment.YOUR_ORG_ID.password=YOUR_ORG_PASSWORD" bash
 ```
 
 
@@ -145,18 +131,27 @@ In the given `DEPLOY_BRANCH_NAME` the service will search for the following stru
 
 
 
-Where **payload.json** has the following structure
+Where **payload.json** has the following structure [DeployRequest.java](./src/main/java/copado/onpremise/job/DeployRequest.java)
 
 ```
 {
-  "deploymentJobId":"SALESFORCE_DEPLOYMENT_JOB_ID",
-  "promoteBranch":"GIT_PROMOTE_BRANCH_NAME",
-  "targetBranch":"GIT_ENVIROMENT_TARGET_BRANCH_NAME",
-  "copadoJobId":"COPADO_JOB_ID_FOR_LOGs",
-  "orgDestId":"SALESFORCE_DESTINATION_ORG_ID",
-  "testLevel":"NoTestRun",
-  "testClasses":[ "My_CustomTestClass_One", "My_CustomTestClass_Two" ],
-  "isCheckOnly":true
+  "deploymentJobId": "SALESFORCE_DEPLOYMENT_JOB_ID",
+  "promoteBranch": "GIT_PROMOTE_BRANCH_NAME",
+  "targetBranch": "GIT_ENVIROMENT_TARGET_BRANCH_NAME",
+  "copadoJobId": "COPADO_JOB_ID_FOR_LOGs",
+  "orgDestId": "SALESFORCE_DESTINATION_ORG_ID",
+  "testLevel": "NoTestRun",
+  "testClasses": [
+    "My_CustomTestClass_One",
+    "My_CustomTestClass_Two"
+  ],
+  "isCheckOnly": true,
+  "gitAuthor": "GIT_AUTHOR",
+  "gitAuthorEmail": "GIT_AUTHOR_EMAIL",
+  "artifactRepositoryIds": [
+    "Artifact_Repository_Id_One",
+    "Artifact_Repository_Id_Two"
+  ]
 }
 ```
 
@@ -168,6 +163,9 @@ Where **payload.json** has the following structure
 * **testLevel**: Salesforce test level to do the deployment.
 * **testClasses**: Salesforce test classes (optional), just needed when testLevel is RunSpecifiedTests.
 * **isCheckOnly**: Salesforce check only to do the deployment.
+* **gitAuthor:** Author that will commit into the git repositories.
+* **gitAuthorEmail:** Email that will commit into the git repositories.
+* **artifactRepositoryIds:** Salesforce Id for artifact git repositories.
 
 
 
