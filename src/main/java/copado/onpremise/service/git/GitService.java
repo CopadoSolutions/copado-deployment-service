@@ -1,5 +1,6 @@
 package copado.onpremise.service.git;
 
+import copado.onpremise.exception.CopadoException;
 import copado.onpremise.service.credential.GitCredentials;
 
 import java.nio.file.Path;
@@ -65,7 +66,7 @@ public interface GitService {
      * @param gitSession
      * @throws GitServiceException
      */
-    void push(GitSession gitSession) throws GitServiceException;
+    void push(GitSession gitSession) throws CopadoException;
 
     /**
      * @param sourceBranch

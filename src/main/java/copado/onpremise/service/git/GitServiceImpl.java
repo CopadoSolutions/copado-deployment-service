@@ -3,6 +3,7 @@ package copado.onpremise.service.git;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import copado.onpremise.exception.CopadoException;
 import copado.onpremise.service.credential.GitCredentials;
 import lombok.AllArgsConstructor;
 import lombok.extern.flogger.Flogger;
@@ -17,6 +18,7 @@ import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.revwalk.RevTree;
 import org.eclipse.jgit.revwalk.RevWalk;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.jgit.treewalk.AbstractTreeIterator;
@@ -100,6 +102,7 @@ class GitServiceImpl implements GitService {
         toBeReturn.setName(promoteBranchRef.getName());
         toBeReturn.setId(promoteBranchRef.getObjectId());
 
+
         return toBeReturn;
     }
 
@@ -132,11 +135,11 @@ class GitServiceImpl implements GitService {
     }
 
     @Override
-    public void push(GitSession session) throws GitServiceException {
+    public void push(GitSession session) throws CopadoException {
         GitSessionImpl gitSession = castSession(session);
 
-        log.atInfo().log("Pushing to remote target branch");
-        handleExceptions(() -> gitSession.getGit().push().setCredentialsProvider(buildCredentialsProvider(session.getGitCredentials())).call());
+        CredentialsProvider credentialsProvider = buildCredentialsProvider(session.getGitCredentials());
+        gitServiceRemote.push(gitSession, credentialsProvider);
     }
 
     @Override

@@ -9,4 +9,8 @@ class BranchImpl implements Branch {
     private String name;
     private ObjectId id;
 
+    public String getIdentifier(){
+        return id.getName();
+    }
+
 }

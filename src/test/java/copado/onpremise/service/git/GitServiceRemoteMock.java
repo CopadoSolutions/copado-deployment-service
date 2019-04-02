@@ -1,30 +1,28 @@
 package copado.onpremise.service.git;
 
+import copado.onpremise.exception.CopadoException;
+import copado.onpremise.exception.ExceptionHandler;
 import lombok.extern.flogger.Flogger;
-import org.apache.commons.io.FileUtils;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Flogger
-public class GitServiceRemoteMock implements GitServiceRemote {
+public class GitServiceRemoteMock extends GitServiceRemoteImpl {
 
     @Override
-    public Git cloneRepository(String repositoryName, UsernamePasswordCredentialsProvider credentialsProvider, Path temporalDir) throws GitAPIException {
+    public Git cloneRepository(String repositoryName, UsernamePasswordCredentialsProvider credentialsProvider, Path temporalDir) throws CopadoException {
 
-        Path originalRepository = Paths.get("src", "test", "resources", "repositories", repositoryName);
+        Path originalRepository = Paths.get("src", "test", "resources", "repositories", repositoryName, "givenRemote", "test_repo.git");
         checkWithException(originalRepository.toFile().exists(), "Could not find original repository: ", originalRepository);
-        handleExceptions(() -> {
-            FileUtils.copyDirectory(originalRepository.toFile(), temporalDir.toFile());
+        return ExceptionHandler.rethrow(CopadoException.class, "Could not clone repository", () ->
+            super.cloneRepository(originalRepository.toAbsolutePath().toString(), credentialsProvider, temporalDir)
+        );
 
-            return Void.TYPE;
-        });
-
-        return Git.init().setDirectory(temporalDir.toFile()).call();
     }
+
 
     private void checkWithException(boolean createBaseDirGit, String message, Object obj) {
         if (!createBaseDirGit) {
