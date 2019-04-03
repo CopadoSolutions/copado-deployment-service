@@ -80,16 +80,13 @@ public class GitServiceImplTest {
     @Test
     public void test_merge() throws Exception {
 
-
-        final String expectedHead = "ref: refs/heads/master";
-
         gitService.cloneBranchFromRepo(gitSession, gitTestContext.correctDeploymentBranchLocalName());
         Branch deploymentBranch = gitService.getBranch(gitSession, gitTestContext.correctDeploymentBranchLocalName());
         gitService.mergeWithNoFastForward(gitSession, deploymentBranch, gitTestContext.correctMasterBranchLocalName());
 
         final String currentHeadFileFirstLine = gitTestContext.currentHeadFirstLineInFile();
 
-        assertThat(expectedHead, is(equalTo(currentHeadFileFirstLine)));
+        assertThat(gitTestContext.correctHeadFirstLineAsMaster(), is(equalTo(currentHeadFileFirstLine)));
         assertTrue(gitTestContext.correctFileInDeploymentBranch().isFile());
         assertTrue(gitTestContext.correctFileInDeploymentBranch().exists());
     }
@@ -97,7 +94,6 @@ public class GitServiceImplTest {
 
     @Test
     public void test_commit_after_Merge() throws Exception {
-        final String expectedHead = "ref: refs/heads/master";
         final String expectedMessage = "NEW MESSAGE ADDED IN TEST COMMIT";
 
         gitService.cloneBranchFromRepo(gitSession, gitTestContext.correctDeploymentBranchLocalName());
@@ -113,7 +109,7 @@ public class GitServiceImplTest {
                 .filter(gitTestContext.isFetchHeadOfMaster())
                 .collect(joining());
 
-        assertThat(currentHeadFileFirstLine, is(equalTo(expectedHead)));
+        assertThat(currentHeadFileFirstLine, is(equalTo(gitTestContext.correctHeadFirstLineAsMaster())));
         assertThat(currentCommitEditMsgFirstLine, is(equalTo(expectedMessage)));
         assertTrue(gitTestContext.correctFileInDeploymentBranch().isFile());
         assertTrue(gitTestContext.correctFileInDeploymentBranch().exists());

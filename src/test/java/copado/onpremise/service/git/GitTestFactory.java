@@ -31,6 +31,7 @@ public class GitTestFactory {
     @Setter
     private String correctAuthorEmail = "TEST_AUTHOR@email.com";
 
+
     public String correctAuthor() {
         return correctAuthor;
     }
@@ -123,4 +124,7 @@ public class GitTestFactory {
         return line -> line.contains("'" + correctMasterBranchLocalName() + "'");
     }
 
+    public String correctHeadFirstLineAsMaster(){
+        return "ref: refs/heads/" + correctMasterBranchLocalName();
+    }
 }
