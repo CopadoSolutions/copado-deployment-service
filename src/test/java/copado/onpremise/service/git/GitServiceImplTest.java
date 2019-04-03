@@ -26,7 +26,7 @@ public class GitServiceImplTest {
     @Before
     public void setUp() throws GitServiceException {
         GitTestFactory.setUp(testFolder);
-        session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
+        session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
     }
 
     @After
@@ -183,7 +183,7 @@ public class GitServiceImplTest {
         FileUtils.copyDirectory(currentRemoteDirectoryPath().toFile(), newOriginalRepositoryPath.toFile());
         GitTestFactory.dataSource().setCurrentRemoteDir(newOriginalRepositoryPath);
 
-        session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
+        session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
     }
 
 
@@ -217,7 +217,7 @@ public class GitServiceImplTest {
     private GitSession givenTwoLocalRepositoriesWithSameRemote() throws IOException, GitServiceException {
         // To do not break the test reference repository, we are going to copy it before pushing.
         setUpWithNewCopyOfRemote(createTempDir("newRemoteGit"));
-        return git.cloneRepo(createTempDir("oldSessionLocalGit"), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
+        return git.cloneRepo(createTempDir("oldSessionLocalGit"), buildCorrectCredentials(currentRemoteDirectory()));
     }
 
 

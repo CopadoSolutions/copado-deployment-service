@@ -1,6 +1,8 @@
 package copado.onpremise.service.git;
 
 
+import copado.onpremise.service.credential.GitCredentials;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.joining;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * This class is a wrapper for git testing.<br/>
@@ -31,6 +35,14 @@ public class GitTestFactory {
     public static void tearDown() {
         GitTestFactory.dataSource = null;
         GitTestFactory.dataSet = null;
+    }
+
+    public static GitCredentials buildCorrectCredentials(String testFolder){
+        final GitCredentials givenGitCredentials = mock(GitCredentials.class);
+        when(givenGitCredentials.getPassword()).thenReturn("");
+        when(givenGitCredentials.getUsername()).thenReturn("");
+        when(givenGitCredentials.getUrl()).thenReturn(testFolder);
+        return givenGitCredentials;
     }
 
     public static GitDataSource dataSource() {
