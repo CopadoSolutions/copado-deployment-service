@@ -96,13 +96,11 @@ public class GitServiceImplTest {
         gitService.mergeWithNoFastForward(gitSession, deploymentBranch, gitTestContext.correctMasterBranchLocalName());
         gitService.commit(gitSession, expectedMessage, gitTestContext.correctAuthor(), gitTestContext.correctAuthorEmail());
 
-        final String fetchHeadMaster = gitTestContext.currentFetchHeadLinesFileInMaster();
-
         assertThat(gitTestContext.currentHeadFirstLineInFile(), is(equalTo(gitTestContext.correctHeadFirstLineAsMaster())));
         assertThat(gitTestContext.currentCommitEditMsgFistLineInFile(), is(equalTo(expectedMessage)));
         assertTrue(gitTestContext.correctFileInDeploymentBranch().isFile());
         assertTrue(gitTestContext.correctFileInDeploymentBranch().exists());
-        assertThat(fetchHeadMaster, not(startsWith(gitTestContext.currentRefsHeadsMasterFirstLineInFile())));
+        assertThat(gitTestContext.currentFetchHeadLinesFileFilteredByMaster(), not(startsWith(gitTestContext.currentRefsHeadsMasterFirstLineInFile())));
     }
 
 

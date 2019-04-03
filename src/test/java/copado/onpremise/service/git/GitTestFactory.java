@@ -145,7 +145,7 @@ public class GitTestFactory {
         return "ref: refs/heads/" + correctMasterBranchLocalName();
     }
 
-    public String currentFetchHeadLinesFileInMaster() {
+    public String currentFetchHeadLinesFileFilteredByMaster() {
         return currentFetchHeadLinesInFile().stream()
                 .filter(isFetchHeadOfMaster())
                 .collect(joining());
