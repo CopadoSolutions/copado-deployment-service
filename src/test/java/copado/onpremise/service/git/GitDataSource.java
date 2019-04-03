@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
-import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Data
 @Builder
@@ -13,9 +13,10 @@ import java.nio.file.Path;
 public class GitDataSource {
 
     private Path currentBaseGitDir;
-    private String currentTestFolder = "gitService";
+    private Path currentRemoteDir;
 
-    public GitDataSource() {
+    public GitDataSource(String currentTestFolder) {
         currentBaseGitDir = GitTestFactory.createGitTempDir();
+        currentRemoteDir = Paths.get("src", "test", "resources", "repositories", currentTestFolder, "givenRemote", "test_repo.git").toAbsolutePath();
     }
 }

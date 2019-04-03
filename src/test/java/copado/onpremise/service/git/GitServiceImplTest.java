@@ -6,24 +6,26 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import static copado.onpremise.service.git.GitTestFactory.*;
+import static copado.onpremise.service.git.GitTestFactory.currentFirstLineInFileRefsHeadsMaster;
 import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 @Flogger
 public class GitServiceImplTest {
 
-    private GitService git;
+    private final String testFolder = "gitService";
+    private GitService git = new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteImpl());
     private GitSession session;
 
 
     @Before
     public void setUp() throws GitServiceException {
-        GitTestFactory.setUp();
-        git = new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteMock());
-        session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentTestFolder()));
+        GitTestFactory.setUp(testFolder);
+        session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
     }
 
     @After
@@ -40,6 +42,7 @@ public class GitServiceImplTest {
     public void cloneMaster_AndCheckExistingFile() {
         assertTrue(correctFileInMaster().isFile());
         assertTrue(correctFileInMaster().exists());
+        assertThat(currentFirstLineInFileRefsHeadsMaster(), is(equalTo(currentFirstLineInRemoteFileRefsHeadsMaster())));
     }
 
     @Test
@@ -55,6 +58,8 @@ public class GitServiceImplTest {
 
         assertTrue(refsHeadOfDeploymentBranch().isFile());
         assertTrue(refsHeadOfDeploymentBranch().exists());
+        assertThat(currentFirstLineInFileRefsHeadsDeployment(), is(equalTo(currentFirstLineInRemoteFileRefsHeadsDeploymentTest())));
+
     }
 
     @Test(expected = GitServiceException.class)
@@ -149,6 +154,37 @@ public class GitServiceImplTest {
     @Test(expected = GitServiceException.class)
     public void hasDifferences_WhenInvalidBranch() throws Exception {
         assertFalse(git.hasDifferences(session, correctMasterBranchLocalName(), invalidBranchLocalName()));
+    }
+
+    @Test
+    public void mergeAndPush() throws Exception {
+
+        // To do not break the test reference repository, we are going to copy it before pushing.
+        setUpWithNewCopyOfRemote();
+        git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
+        Branch deploymentBranch = git.getBranch(session, correctDeploymentBranchLocalName());
+
+        git.mergeWithNoFastForward(session, deploymentBranch, correctMasterBranchLocalName());
+        assertThat(currentFirstLineInRemoteFileRefsHeadsMaster(), not(equalTo(currentFirstLineInFileRefsHeadsMaster())));
+
+        git.push(session);
+        assertThat(currentFirstLineInRemoteFileRefsHeadsMaster(), is(equalTo(currentFirstLineInFileRefsHeadsMaster())));
+
+    }
+
+    @Test
+    public void getHead() throws Exception {
+        assertThat(git.getHead(session), is(equalTo(currentFirstLineInFileRefsHeadsMaster())));
+    }
+
+    private void setUpWithNewCopyOfRemote() throws IOException, GitServiceException {
+        GitTestFactory.setUp(testFolder);
+
+        Path newOriginalRepositoryPath = createTempDir("newRemoteGit");
+        FileUtils.copyDirectory(currentRemoteDirectoryPath().toFile(), newOriginalRepositoryPath.toFile());
+        GitTestFactory.dataSource().setCurrentRemoteDir(newOriginalRepositoryPath);
+
+        session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
     }
 
 

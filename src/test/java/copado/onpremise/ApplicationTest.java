@@ -7,7 +7,7 @@ import copado.onpremise.job.JobModule;
 import copado.onpremise.job.OnPremiseDeploymentJob;
 import copado.onpremise.service.credential.CredentialModule;
 import copado.onpremise.service.file.FileModule;
-import copado.onpremise.service.git.GitModuleMock;
+import copado.onpremise.service.git.GitModule;
 import copado.onpremise.service.salesforce.SalesforceModule;
 import copado.onpremise.service.salesforce.dx.DxModule;
 import copado.onpremise.service.validation.ValidationModule;
@@ -23,7 +23,7 @@ public class ApplicationTest {
     public void useCase_basicSalesforceDeployment() throws ConfigurationException {
         Application.main(new String[]{"-deployBranchName","deployment/TEST"});
 
-        Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModuleMock(), new SalesforceModule(), new ValidationModule(), new DxModule());
+        Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModule(), new SalesforceModule(), new ValidationModule(), new DxModule());
         OnPremiseDeploymentJob job = injector.getInstance(OnPremiseDeploymentJob.class);
         job.setDeployBranchName("deployment/TEST");
        //TODO:  job.execute();
