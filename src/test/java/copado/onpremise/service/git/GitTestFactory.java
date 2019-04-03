@@ -1,6 +1,5 @@
 package copado.onpremise.service.git;
 
-import lombok.Setter;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,115 +16,105 @@ import static java.util.stream.Collectors.joining;
 public class GitTestFactory {
 
 
-    @Setter
-    private Path currentBaseGitDir;
-    @Setter
-    private String currentTestFolder = "gitService";
+    private static GitDataSource dataSource;
+    private static GitDataSet dataSet;
 
-    @Setter
-    private String correctFileNameInMaster = "README.md";
-    @Setter
-    private String correctDeploymentBranchLocalName = "deployment/TEST";
-    @Setter
-    private String correctFileNameInDeploymentBranch = "new_file.md";
-    @Setter
-    private String correctHeadInDeploymentBranch = "54365d7e99a4f1465bf04e7afff4107510ff404d";
-    @Setter
-    private String correctMasterBranchLocalName = "master";
-    @Setter
-    private String correctAuthor = "TEST_AUTHOR";
-    @Setter
-    private String correctAuthorEmail = "TEST_AUTHOR@email.com";
+    public static void setUp() {
 
-    public GitTestFactory() throws IOException {
-        currentBaseGitDir = Files.createTempDirectory("git").toAbsolutePath();
+        GitTestFactory.dataSource = new GitDataSource();
+        GitTestFactory.dataSet = new GitDataSet();
     }
 
-    public Path currentBaseGitDir() {
-        return currentBaseGitDir;
+    public static void tearDown() {
+        GitTestFactory.dataSource = null;
+        GitTestFactory.dataSet = null;
     }
 
-    public String currentTestFolder() {
-        return currentTestFolder;
+    public static Path currentBaseGitDir() {
+        return dataSource.getCurrentBaseGitDir();
     }
 
-    public String correctAuthor() {
-        return correctAuthor;
+    public static String currentTestFolder() {
+        return dataSource.getCurrentTestFolder();
     }
 
-    public String correctAuthorEmail() {
-        return correctAuthorEmail;
+    public static String correctAuthor() {
+        return dataSet.getCorrectAuthor();
     }
 
-    public String correctMasterBranchLocalName() {
-        return correctMasterBranchLocalName;
+    public static String correctAuthorEmail() {
+        return dataSet.getCorrectAuthorEmail();
     }
 
-    public String correctFileNameInMaster() {
-        return correctFileNameInMaster;
+    public static String correctMasterBranchLocalName() {
+        return dataSet.getCorrectMasterBranchLocalName();
     }
 
-    public Path correctFilePathInMaster() {
-        return currentBaseGitDir.resolve(correctFileNameInMaster());
+    public static String correctFileNameInMaster() {
+        return dataSet.getCorrectFileNameInMaster();
     }
 
-    public File correctFileInMaster() {
+    public static Path correctFilePathInMaster() {
+        return dataSource.getCurrentBaseGitDir().resolve(correctFileNameInMaster());
+    }
+
+    public static File correctFileInMaster() {
         return correctFilePathInMaster().toFile();
     }
 
-    public String correctDeploymentBranchLocalName() {
-        return correctDeploymentBranchLocalName;
+    public static String correctDeploymentBranchLocalName() {
+        return dataSet.getCorrectDeploymentBranchLocalName();
     }
 
-    public Path correctGitRefsHeadPathOfDeploymentBranch() {
-        return Paths.get(currentBaseGitDir.toAbsolutePath().toString(), ".git", "refs", "heads", correctDeploymentBranchLocalName);
+    public static Path refsHeadPathOfDeploymentBranch() {
+        return Paths.get(dataSource.getCurrentBaseGitDir().toAbsolutePath().toString(), ".git", "refs", "heads", dataSet.getCorrectDeploymentBranchLocalName());
     }
 
-    public File correctGitRefsHeadFilehOfDeploymentBranch() {
-        return correctGitRefsHeadPathOfDeploymentBranch().toFile();
+    public static File refsHeadOfDeploymentBranch() {
+        return refsHeadPathOfDeploymentBranch().toFile();
     }
 
-    public String correctFileNameInDeploymentBranch() {
-        return correctFileNameInDeploymentBranch;
+    public static String correctFileNameInDeploymentBranch() {
+        return dataSet.getCorrectFileNameInDeploymentBranch();
     }
 
-    public Path correctFilePathInDeploymentBranch() {
-        return currentBaseGitDir.resolve(correctFileNameInDeploymentBranch());
+    public static Path correctFilePathInDeploymentBranch() {
+        return dataSource.getCurrentBaseGitDir().resolve(correctFileNameInDeploymentBranch());
     }
 
-    public File correctFileInDeploymentBranch() {
+    public static File correctFileInDeploymentBranch() {
         return correctFilePathInDeploymentBranch().toFile();
     }
 
-    public String correctHeadInDeploymentBranch() {
-        return correctHeadInDeploymentBranch;
+    public static String correctHeadInDeploymentBranch() {
+        return dataSet.getCorrectHeadInDeploymentBranch();
     }
 
-    public String correctDeploymentBranchRefsRemoteName() {
+    public static String correctDeploymentBranchRefsRemoteName() {
         return "refs/remotes/origin/" + correctDeploymentBranchLocalName();
     }
 
-    public List<String> currentFetchHeadLinesInFile() {
-        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("FETCH_HEAD"));
+    public static List<String> currentLinesInFileFetchHead() {
+        return currentLinesInFile(dataSource.getCurrentBaseGitDir().resolve(".git").resolve("FETCH_HEAD"));
     }
 
-    public List<String> currentHeadLinesInFile() {
-        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("HEAD"));
+    public static List<String> currentLinesInFileHead() {
+        return currentLinesInFile(dataSource.getCurrentBaseGitDir().resolve(".git").resolve("HEAD"));
     }
 
-    public String currentHeadFirstLineInFile() {
-        return currentHeadLinesInFile().get(0);
+    public static String currentFirstLineInFileHead() {
+        return currentLinesInFileHead().get(0);
     }
 
-    public String currentCommitEditMsgFistLineInFile() {
-        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("COMMIT_EDITMSG")).get(0);
+    public static String currentLinesInFileCommitEditMsg() {
+        return currentLinesInFile(dataSource.getCurrentBaseGitDir().resolve(".git").resolve("COMMIT_EDITMSG")).get(0);
     }
 
-    public String currentRefsHeadsMasterFirstLineInFile() {
-        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("refs").resolve("heads").resolve(correctMasterBranchLocalName())).get(0);
+    public static String currentLinesInFileRefsHeadsMaster() {
+        return currentLinesInFile(dataSource.getCurrentBaseGitDir().resolve(".git").resolve("refs").resolve("heads").resolve(correctMasterBranchLocalName())).get(0);
     }
 
-    private List<String> currentLinesInFile(Path path) {
+    private static List<String> currentLinesInFile(Path path) {
         try {
             return Files.readAllLines(path, Charset.defaultCharset());
         } catch (IOException e) {
@@ -133,21 +122,29 @@ public class GitTestFactory {
         }
     }
 
-    public String currentFetchHeadFileContent() {
-        return String.join("\n", currentFetchHeadLinesInFile());
+    public static String currentContentInFileFetchHead() {
+        return String.join("\n", currentLinesInFileFetchHead());
     }
 
-    public Predicate<String> isFetchHeadOfMaster() {
+    public static Predicate<String> isFetchHeadOfMaster() {
         return line -> line.contains("'" + correctMasterBranchLocalName() + "'");
     }
 
-    public String correctHeadFirstLineAsMaster() {
+    public static String correctMasterRefHead() {
         return "ref: refs/heads/" + correctMasterBranchLocalName();
     }
 
-    public String currentFetchHeadLinesFileFilteredByMaster() {
-        return currentFetchHeadLinesInFile().stream()
+    public static String currentLinesInFileFetchHeadFilteredByMaster() {
+        return currentLinesInFileFetchHead().stream()
                 .filter(isFetchHeadOfMaster())
                 .collect(joining());
+    }
+
+    public static Path createGitTempDir() {
+        try {
+            return Files.createTempDirectory("git").toAbsolutePath();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not create temporal directory for git", e);
+        }
     }
 }
