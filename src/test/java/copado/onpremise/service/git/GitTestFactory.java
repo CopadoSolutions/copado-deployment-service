@@ -106,11 +106,11 @@ public class GitTestFactory {
         return currentLinesInFileHead().get(0);
     }
 
-    public static String currentLinesInFileCommitEditMsg() {
+    public static String currentFirstLineInFileCommitEditMsg() {
         return currentLinesInFile(dataSource.getCurrentBaseGitDir().resolve(".git").resolve("COMMIT_EDITMSG")).get(0);
     }
 
-    public static String currentLinesInFileRefsHeadsMaster() {
+    public static String currentFirstLineInFileRefsHeadsMaster() {
         return currentLinesInFile(dataSource.getCurrentBaseGitDir().resolve(".git").resolve("refs").resolve("heads").resolve(correctMasterBranchLocalName())).get(0);
     }
 

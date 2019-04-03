@@ -6,8 +6,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-
 import static copado.onpremise.service.git.GitTestFactory.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
@@ -21,7 +19,7 @@ public class GitServiceImplTest {
 
 
     @Before
-    public void setUp() throws IOException, GitServiceException {
+    public void setUp() throws GitServiceException {
         GitTestFactory.setUp();
         git = new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteMock());
         session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentTestFolder()));
@@ -97,10 +95,10 @@ public class GitServiceImplTest {
         git.commit(session, commitMessage, correctAuthor(), correctAuthorEmail());
 
         assertThat(currentFirstLineInFileHead(), is(equalTo(correctMasterRefHead())));
-        assertThat(currentLinesInFileCommitEditMsg(), is(equalTo(commitMessage)));
+        assertThat(currentFirstLineInFileCommitEditMsg(), is(equalTo(commitMessage)));
         assertTrue(correctFileInDeploymentBranch().isFile());
         assertTrue(correctFileInDeploymentBranch().exists());
-        assertThat(currentLinesInFileFetchHeadFilteredByMaster(), not(startsWith(currentLinesInFileRefsHeadsMaster())));
+        assertThat(currentLinesInFileFetchHeadFilteredByMaster(), not(startsWith(currentFirstLineInFileRefsHeadsMaster())));
     }
 
 
