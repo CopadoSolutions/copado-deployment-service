@@ -12,9 +12,13 @@ import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.joining;
 
-
+/**
+ * This class is a wrapper for git testing.<br/>
+ * - Syntactic method naming<br/>
+ * - Use {@link #setUp()} method before use this class it in your tests<br/>
+ * - Use {@link #tearDown()} once each test has finished<br/>
+ */
 public class GitTestFactory {
-
 
     private static GitDataSource dataSource;
     private static GitDataSet dataSet;
