@@ -7,7 +7,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -83,45 +82,42 @@ public class GitServiceImplTest {
 
 
         final String expectedHead = "ref: refs/heads/master";
-        final String expectedFile = "new_file.md";
-        final String givenBranchName = "deployment/TEST";
 
-        gitService.cloneBranchFromRepo(gitSession, givenBranchName);
-        Branch deploymentBranch = gitService.getBranch(gitSession, givenBranchName);
-        gitService.mergeWithNoFastForward(gitSession, deploymentBranch, "master");
+        gitService.cloneBranchFromRepo(gitSession, gitTestContext.correctDeploymentBranchLocalName());
+        Branch deploymentBranch = gitService.getBranch(gitSession, gitTestContext.correctDeploymentBranchLocalName());
+        gitService.mergeWithNoFastForward(gitSession, deploymentBranch, gitTestContext.correctMasterBranchLocalName());
 
-        final String currentHead = Files.readAllLines(baseDirGit.resolve(".git").resolve("HEAD"), Charset.defaultCharset()).get(0);
+        final String currentHeadFileFirstLine = gitTestContext.currentHeadFirstLineInFile();
 
-        assertThat(expectedHead, is(equalTo(currentHead)));
-        assertTrue(baseDirGit.resolve(expectedFile).toFile().isFile());
-        assertTrue(baseDirGit.resolve(expectedFile).toFile().exists());
+        assertThat(expectedHead, is(equalTo(currentHeadFileFirstLine)));
+        assertTrue(gitTestContext.correctFileInDeploymentBranch().isFile());
+        assertTrue(gitTestContext.correctFileInDeploymentBranch().exists());
     }
 
 
     @Test
     public void test_commit_after_Merge() throws Exception {
-        final String givenBranchName = "deployment/TEST";
         final String expectedHead = "ref: refs/heads/master";
-        final String expectedFile = "new_file.md";
-        final String author = "TEST_AUTHOR";
-        final String authorEmail = "TEST_AUTHOR@email.com";
         final String expectedMessage = "NEW MESSAGE ADDED IN TEST COMMIT";
 
-        gitService.cloneBranchFromRepo(gitSession, givenBranchName);
-        Branch deploymentBranch = gitService.getBranch(gitSession, givenBranchName);
-        gitService.mergeWithNoFastForward(gitSession, deploymentBranch, "master");
-        gitService.commit(gitSession, expectedMessage, author, authorEmail);
+        gitService.cloneBranchFromRepo(gitSession, gitTestContext.correctDeploymentBranchLocalName());
+        Branch deploymentBranch = gitService.getBranch(gitSession, gitTestContext.correctDeploymentBranchLocalName());
+        gitService.mergeWithNoFastForward(gitSession, deploymentBranch, gitTestContext.correctMasterBranchLocalName());
+        gitService.commit(gitSession, expectedMessage, gitTestContext.correctAuthor(), gitTestContext.correctAuthorEmail());
 
-        final String currentHead = Files.readAllLines(baseDirGit.resolve(".git").resolve("HEAD"), Charset.defaultCharset()).get(0);
-        final String commitEditMsg = Files.readAllLines(baseDirGit.resolve(".git").resolve("COMMIT_EDITMSG"), Charset.defaultCharset()).get(0);
-        final String latestCommit = Files.readAllLines(baseDirGit.resolve(".git").resolve("refs").resolve("heads").resolve("master"), Charset.defaultCharset()).get(0);
-        final String fetchHeadMaster = Files.readAllLines(baseDirGit.resolve(".git").resolve("FETCH_HEAD"), Charset.defaultCharset()).stream().filter(line -> line.contains("'master'")).collect(joining());
+        final String currentHeadFileFirstLine = gitTestContext.currentHeadFirstLineInFile();
+        final String currentCommitEditMsgFirstLine = gitTestContext.currentCommitEditMsgFistLineInFile();
+        final String currentRefsHeadsMasterFirstLine = gitTestContext.currentRefsHeadsMasterFirstLineInFile();
+        final String fetchHeadMaster = gitTestContext
+                .currentFetchHeadLinesInFile().stream()
+                .filter(gitTestContext.isFetchHeadOfMaster())
+                .collect(joining());
 
-        assertThat(currentHead, is(equalTo(expectedHead)));
-        assertThat(commitEditMsg, is(equalTo(expectedMessage)));
-        assertTrue(baseDirGit.resolve(expectedFile).toFile().isFile());
-        assertTrue(baseDirGit.resolve(expectedFile).toFile().exists());
-        // You did not push yet, remote is behind local
-        assertThat(fetchHeadMaster, not(startsWith(latestCommit)));
+        assertThat(currentHeadFileFirstLine, is(equalTo(expectedHead)));
+        assertThat(currentCommitEditMsgFirstLine, is(equalTo(expectedMessage)));
+        assertTrue(gitTestContext.correctFileInDeploymentBranch().isFile());
+        assertTrue(gitTestContext.correctFileInDeploymentBranch().exists());
+        assertThat(fetchHeadMaster, not(startsWith(currentRefsHeadsMasterFirstLine)));
     }
+
 }
