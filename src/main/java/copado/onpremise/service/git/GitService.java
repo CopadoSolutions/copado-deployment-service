@@ -88,4 +88,5 @@ public interface GitService {
 
     void commit(GitSession session, String message, String author, String authorEmail) throws GitServiceException;
 
+    void close(GitSession session) throws GitServiceException;
 }

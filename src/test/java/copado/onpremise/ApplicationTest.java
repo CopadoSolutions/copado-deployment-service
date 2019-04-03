@@ -12,11 +12,13 @@ import copado.onpremise.service.salesforce.SalesforceModule;
 import copado.onpremise.service.salesforce.dx.DxModule;
 import copado.onpremise.service.validation.ValidationModule;
 import org.apache.commons.configuration.ConfigurationException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ApplicationTest {
 
 
+    @Ignore
     @Test
     public void useCase_basicSalesforceDeployment() throws ConfigurationException {
         Application.main(new String[]{"-deployBranchName","deployment/TEST"});

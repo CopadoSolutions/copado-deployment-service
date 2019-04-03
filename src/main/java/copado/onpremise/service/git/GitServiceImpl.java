@@ -224,6 +224,25 @@ class GitServiceImpl implements GitService {
 
     }
 
+    @Override
+    public void close(GitSession session) throws GitServiceException {
+        GitSessionImpl gitSession = castSession(session);
+        gitSession.getGit().close();
+        removeGitLockFile(gitSession.getBaseDir());
+    }
+
+    /**
+     * <a href="https://www.eclipse.org/lists/jgit-dev/msg03370.html">Related JGit issue</a>
+     * Occasionally there are repositories that cannot be deleted because deleting the file .git/gc.log.lock fails (i.e. File::delete() returns false).<br/>
+     * Note that the code correctly closes the repository before deleting the respective directory.<br/>
+     */
+    private void removeGitLockFile(Path baseDirGit) {
+        Path issuedFile = baseDirGit.resolve(".git").resolve("gc.log.lock");
+        if (issuedFile.toFile().exists()) {
+            issuedFile.toFile().delete();
+        }
+    }
+
     private void processGitIgnore(GitSessionImpl gitSession) {
 
         Path gitIgnorePath = gitSession.getBaseDir().resolve(GITIGNORE);
