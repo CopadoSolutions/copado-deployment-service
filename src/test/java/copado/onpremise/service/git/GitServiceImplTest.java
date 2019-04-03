@@ -186,36 +186,40 @@ public class GitServiceImplTest {
         session = git.cloneRepo(currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
     }
 
+
+    @Test(expected = GitServiceException.class)
+    public void fetch_withInvalidBranch() throws GitServiceException {
+        git.fetchBranch(session, invalidBranchLocalName());
+    }
+
     @Test
     public void pushAndfetch_withValidBranch() throws CopadoException, IOException {
-        // ------------------------------------------------------------------------------------
-        // Given: two local repositories that cloned same remote repository
-        // ------------------------------------------------------------------------------------
-        // To do not break the test reference repository, we are going to copy it before pushing.
-        setUpWithNewCopyOfRemote(createTempDir("newRemoteGit"));
-        GitSession oldSession = git.cloneRepo(createTempDir("oldSessionLocalGit"), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
 
-        // ------------------------------------------------------------------------------------
-        // When: one of them push new changes into remote
-        // ------------------------------------------------------------------------------------
-        git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
-        Branch deploymentBranch = git.getBranch(session, correctDeploymentBranchLocalName());
-        git.mergeWithNoFastForward(session, deploymentBranch, correctMasterBranchLocalName());
-        git.push(session);
+        GitSession oldSession = givenTwoLocalRepositoriesWithSameRemote();
+        whenOnePushesNewChangesToRemote();
+        assertOutdatedRepositoryIncludeChangesAfterFetch(oldSession);
+    }
 
-        // ------------------------------------------------------------------------------------
-        // Assert: Changes are not included into outdated local repository until fetch
-        // ------------------------------------------------------------------------------------
+    private void assertOutdatedRepositoryIncludeChangesAfterFetch(GitSession oldSession) throws GitServiceException {
         GitTestFactory.dataSource().setCurrentBaseGitDir(oldSession.getBaseDir());
         assertThat(currentLinesInFileFetchHeadFilteredByMaster(), not(startsWith(currentFirstLineInRemoteFileRefsHeadsMaster())));
         git.fetchBranch(oldSession, correctMasterBranchLocalName());
         assertThat(currentLinesInFileFetchHeadFilteredByMaster(), startsWith(currentFirstLineInRemoteFileRefsHeadsMaster()));
     }
 
-    @Test(expected = GitServiceException.class)
-    public void fetch_withInvalidBranch() throws GitServiceException {
-        git.fetchBranch(session, invalidBranchLocalName());
+    private void whenOnePushesNewChangesToRemote() throws CopadoException {
+        git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
+        Branch deploymentBranch = git.getBranch(session, correctDeploymentBranchLocalName());
+        git.mergeWithNoFastForward(session, deploymentBranch, correctMasterBranchLocalName());
+        git.push(session);
     }
+
+    private GitSession givenTwoLocalRepositoriesWithSameRemote() throws IOException, GitServiceException {
+        // To do not break the test reference repository, we are going to copy it before pushing.
+        setUpWithNewCopyOfRemote(createTempDir("newRemoteGit"));
+        return git.cloneRepo(createTempDir("oldSessionLocalGit"), GitCredentialTestFactory.buildCorrectCredentials(currentRemoteDirectory()));
+    }
+
 
 
 }
