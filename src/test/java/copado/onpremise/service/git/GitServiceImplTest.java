@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 
 import static copado.onpremise.service.git.GitTestFactory.*;
-import static copado.onpremise.service.git.GitTestFactory.currentFirstLineInFileRefsHeadsMaster;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
@@ -19,9 +18,8 @@ import static org.junit.Assert.*;
 public class GitServiceImplTest {
 
     private final String testFolder = "gitService";
-    private GitService git = new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteImpl());
+    private GitService git = initGitService();
     private GitSession session;
-
 
     @Before
     public void setUp() throws GitServiceException {
@@ -37,7 +35,6 @@ public class GitServiceImplTest {
         FileUtils.deleteDirectory(currentBaseGitDir().toFile());
         GitTestFactory.tearDown();
     }
-
 
     @Test
     public void cloneMaster_AndCheckExistingFile() {
@@ -219,7 +216,5 @@ public class GitServiceImplTest {
         setUpWithNewCopyOfRemote(createTempDir("newRemoteGit"));
         return git.cloneRepo(createTempDir("oldSessionLocalGit"), buildCorrectCredentials(currentRemoteDirectory()));
     }
-
-
 
 }

@@ -45,6 +45,10 @@ public class GitTestFactory {
         return givenGitCredentials;
     }
 
+    public static GitService initGitService(){
+        return new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteImpl());
+    }
+
     public static GitDataSource dataSource() {
         return dataSource;
     }
