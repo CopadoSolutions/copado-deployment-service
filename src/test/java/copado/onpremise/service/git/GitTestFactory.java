@@ -66,6 +66,10 @@ public class GitTestFactory {
         return dataSet.getCorrectDeploymentBranchLocalName();
     }
 
+    public static String invalidBranchLocalName() {
+        return dataSet.getInvalidBranchLocalName();
+    }
+
     public static Path refsHeadPathOfDeploymentBranch() {
         return Paths.get(dataSource.getCurrentBaseGitDir().toAbsolutePath().toString(), ".git", "refs", "heads", dataSet.getCorrectDeploymentBranchLocalName());
     }

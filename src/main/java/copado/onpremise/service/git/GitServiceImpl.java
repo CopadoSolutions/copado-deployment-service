@@ -95,6 +95,7 @@ class GitServiceImpl implements GitService {
 
         List<Ref> branches = handleExceptions(() -> gitSession.getGit().branchList().setListMode(ListBranchCommand.ListMode.REMOTE).call());
         List<Ref> promoteBranchList = branches.stream().filter(b -> b.getName().endsWith(branch)).collect(Collectors.toList());
+        checkRefListSizeGreaterThanZero(branch, promoteBranchList);
         Ref promoteBranchRef = promoteBranchList.get(0);
 
         log.atInfo().log("Id:%s for branch:%s%s", promoteBranchRef.getObjectId(), ORIGIN, branch);
@@ -104,6 +105,14 @@ class GitServiceImpl implements GitService {
 
 
         return toBeReturn;
+    }
+
+    private void checkRefListSizeGreaterThanZero(String branch, List<Ref> promoteBranchList) throws GitServiceException {
+        if (promoteBranchList.isEmpty()) {
+            String errorMessage = String.format("Could not find '%s' branch in remote repository", branch);
+            log.atSevere().log(errorMessage);
+            throw new GitServiceException(errorMessage);
+        }
     }
 
     @Override

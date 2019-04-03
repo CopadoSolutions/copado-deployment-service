@@ -17,4 +17,5 @@ public class GitDataSet {
     private String correctMasterBranchLocalName = "master";
     private String correctAuthor = "TEST_AUTHOR";
     private String correctAuthorEmail = "TEST_AUTHOR@email.com";
+    private String invalidBranchLocalName = "INVALID_TEST_BRANCH";
 }

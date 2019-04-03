@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import static copado.onpremise.service.git.GitTestFactory.*;
 import static org.hamcrest.CoreMatchers.*;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -36,13 +37,19 @@ public class GitServiceImplTest {
 
 
     @Test
-    public void clone_repositoryWithCorrectFile() {
+    public void cloneMaster_AndCheckExistingFile() {
         assertTrue(correctFileInMaster().isFile());
         assertTrue(correctFileInMaster().exists());
     }
 
     @Test
-    public void test_cloneBranchFromRepo() throws Exception {
+    public void cloneMaster_AndCheckThatDeploymentFileDoesNotExists() {
+        assertFalse(correctFileInDeploymentBranch().isFile());
+        assertFalse(correctFileInDeploymentBranch().exists());
+    }
+
+    @Test
+    public void cloneBranch_DeploymentTest() throws Exception {
 
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
 
@@ -50,8 +57,13 @@ public class GitServiceImplTest {
         assertTrue(refsHeadOfDeploymentBranch().exists());
     }
 
+    @Test(expected = GitServiceException.class)
+    public void cloneBranch_InvalidBranch() throws Exception {
+        git.cloneBranchFromRepo(session, invalidBranchLocalName());
+    }
+
     @Test
-    public void test_checkout() throws Exception {
+    public void checkout_DeploymentTestBranch() throws Exception {
 
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
         git.checkout(session, correctDeploymentBranchLocalName());
@@ -60,8 +72,20 @@ public class GitServiceImplTest {
         assertTrue(correctFileInDeploymentBranch().exists());
     }
 
+    @Test(expected = GitServiceException.class)
+    public void checkout_InvalidBranch() throws Exception {
+        git.checkout(session, invalidBranchLocalName());
+    }
+
     @Test
-    public void test_getBranch() throws Exception {
+    public void checkout_CurrentBranch() throws Exception {
+        git.checkout(session, correctMasterBranchLocalName());
+        assertTrue(correctFileInMaster().isFile());
+        assertTrue(correctFileInMaster().exists());
+    }
+
+    @Test
+    public void getBranch_DeploymentTest() throws Exception {
 
         Branch givenBranch = git.getBranch(session, correctDeploymentBranchLocalName());
 
@@ -72,8 +96,14 @@ public class GitServiceImplTest {
 
     }
 
+    @Test(expected = GitServiceException.class)
+    public void getBranch_InvalidBranch() throws Exception {
+
+        git.getBranch(session, invalidBranchLocalName());
+    }
+
     @Test
-    public void test_merge() throws Exception {
+    public void merge() throws Exception {
 
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
         Branch deploymentBranch = git.getBranch(session, correctDeploymentBranchLocalName());
@@ -86,7 +116,7 @@ public class GitServiceImplTest {
 
 
     @Test
-    public void test_commit_after_Merge() throws Exception {
+    public void mergeAndCommit() throws Exception {
         final String commitMessage = "NEW MESSAGE ADDED IN TEST COMMIT";
 
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
@@ -101,6 +131,15 @@ public class GitServiceImplTest {
         assertThat(currentLinesInFileFetchHeadFilteredByMaster(), not(startsWith(currentFirstLineInFileRefsHeadsMaster())));
     }
 
+    @Test
+    public void hasDifferences_WhenDifferent() throws Exception {
+        assertTrue(git.hasDifferences(session, correctMasterBranchLocalName(), correctDeploymentBranchLocalName()));
+    }
+
+    @Test
+    public void hasDifferences_WhenEquals() throws Exception {
+        assertFalse(git.hasDifferences(session, correctMasterBranchLocalName(), correctMasterBranchLocalName()));
+    }
 
 
 }
