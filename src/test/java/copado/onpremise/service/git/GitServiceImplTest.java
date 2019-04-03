@@ -7,10 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
-import static java.util.stream.Collectors.joining;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -18,25 +15,23 @@ import static org.junit.Assert.assertTrue;
 @Flogger
 public class GitServiceImplTest {
 
-    private final static String TEST_FOLDER = "gitService";
-    private Path baseDirGit;
     private GitService gitService;
     private GitSession gitSession;
-    private GitTestFactory gitTestContext = new GitTestFactory();
+    private GitTestFactory gitTestContext;
 
     @Before
     public void setUp() throws IOException, GitServiceException {
-        baseDirGit = Files.createTempDirectory("git").toAbsolutePath();
-        gitTestContext.setBaseDirGit(baseDirGit);
+        gitTestContext = new GitTestFactory();
+        gitTestContext.setCurrentBaseGitDir(gitTestContext.currentBaseGitDir());
         gitService = new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteMock());
-        gitSession = gitService.cloneRepo(baseDirGit, GitCredentialTestFactory.buildCorrectCredentials(TEST_FOLDER));
+        gitSession = gitService.cloneRepo(gitTestContext.currentBaseGitDir(), GitCredentialTestFactory.buildCorrectCredentials(gitTestContext.currentTestFolder()));
     }
 
     @After
     public void tearDown() throws Exception {
         gitService.close(gitSession);
         gitService = null;
-        FileUtils.deleteDirectory(baseDirGit.toFile());
+        FileUtils.deleteDirectory(gitTestContext.currentBaseGitDir().toFile());
     }
 
 
@@ -101,19 +96,15 @@ public class GitServiceImplTest {
         gitService.mergeWithNoFastForward(gitSession, deploymentBranch, gitTestContext.correctMasterBranchLocalName());
         gitService.commit(gitSession, expectedMessage, gitTestContext.correctAuthor(), gitTestContext.correctAuthorEmail());
 
-        final String currentHeadFileFirstLine = gitTestContext.currentHeadFirstLineInFile();
-        final String currentCommitEditMsgFirstLine = gitTestContext.currentCommitEditMsgFistLineInFile();
-        final String currentRefsHeadsMasterFirstLine = gitTestContext.currentRefsHeadsMasterFirstLineInFile();
-        final String fetchHeadMaster = gitTestContext
-                .currentFetchHeadLinesInFile().stream()
-                .filter(gitTestContext.isFetchHeadOfMaster())
-                .collect(joining());
+        final String fetchHeadMaster = gitTestContext.currentFetchHeadLinesFileInMaster();
 
-        assertThat(currentHeadFileFirstLine, is(equalTo(gitTestContext.correctHeadFirstLineAsMaster())));
-        assertThat(currentCommitEditMsgFirstLine, is(equalTo(expectedMessage)));
+        assertThat(gitTestContext.currentHeadFirstLineInFile(), is(equalTo(gitTestContext.correctHeadFirstLineAsMaster())));
+        assertThat(gitTestContext.currentCommitEditMsgFistLineInFile(), is(equalTo(expectedMessage)));
         assertTrue(gitTestContext.correctFileInDeploymentBranch().isFile());
         assertTrue(gitTestContext.correctFileInDeploymentBranch().exists());
-        assertThat(fetchHeadMaster, not(startsWith(currentRefsHeadsMasterFirstLine)));
+        assertThat(fetchHeadMaster, not(startsWith(gitTestContext.currentRefsHeadsMasterFirstLineInFile())));
     }
+
+
 
 }

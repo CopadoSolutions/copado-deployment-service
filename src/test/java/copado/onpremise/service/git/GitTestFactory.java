@@ -11,11 +11,17 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.function.Predicate;
 
+import static java.util.stream.Collectors.joining;
+
 
 public class GitTestFactory {
 
+
     @Setter
-    private Path baseDirGit;
+    private Path currentBaseGitDir;
+    @Setter
+    private String currentTestFolder = "gitService";
+
     @Setter
     private String correctFileNameInMaster = "README.md";
     @Setter
@@ -31,6 +37,17 @@ public class GitTestFactory {
     @Setter
     private String correctAuthorEmail = "TEST_AUTHOR@email.com";
 
+    public GitTestFactory() throws IOException {
+        currentBaseGitDir = Files.createTempDirectory("git").toAbsolutePath();
+    }
+
+    public Path currentBaseGitDir() {
+        return currentBaseGitDir;
+    }
+
+    public String currentTestFolder() {
+        return currentTestFolder;
+    }
 
     public String correctAuthor() {
         return correctAuthor;
@@ -49,7 +66,7 @@ public class GitTestFactory {
     }
 
     public Path correctFilePathInMaster() {
-        return baseDirGit.resolve(correctFileNameInMaster());
+        return currentBaseGitDir.resolve(correctFileNameInMaster());
     }
 
     public File correctFileInMaster() {
@@ -61,7 +78,7 @@ public class GitTestFactory {
     }
 
     public Path correctGitRefsHeadPathOfDeploymentBranch() {
-        return Paths.get(baseDirGit.toAbsolutePath().toString(), ".git", "refs", "heads", correctDeploymentBranchLocalName);
+        return Paths.get(currentBaseGitDir.toAbsolutePath().toString(), ".git", "refs", "heads", correctDeploymentBranchLocalName);
     }
 
     public File correctGitRefsHeadFilehOfDeploymentBranch() {
@@ -73,7 +90,7 @@ public class GitTestFactory {
     }
 
     public Path correctFilePathInDeploymentBranch() {
-        return baseDirGit.resolve(correctFileNameInDeploymentBranch());
+        return currentBaseGitDir.resolve(correctFileNameInDeploymentBranch());
     }
 
     public File correctFileInDeploymentBranch() {
@@ -89,11 +106,11 @@ public class GitTestFactory {
     }
 
     public List<String> currentFetchHeadLinesInFile() {
-        return currentLinesInFile(baseDirGit.resolve(".git").resolve("FETCH_HEAD"));
+        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("FETCH_HEAD"));
     }
 
     public List<String> currentHeadLinesInFile() {
-        return currentLinesInFile(baseDirGit.resolve(".git").resolve("HEAD"));
+        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("HEAD"));
     }
 
     public String currentHeadFirstLineInFile() {
@@ -101,11 +118,11 @@ public class GitTestFactory {
     }
 
     public String currentCommitEditMsgFistLineInFile() {
-        return currentLinesInFile(baseDirGit.resolve(".git").resolve("COMMIT_EDITMSG")).get(0);
+        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("COMMIT_EDITMSG")).get(0);
     }
 
     public String currentRefsHeadsMasterFirstLineInFile() {
-        return currentLinesInFile(baseDirGit.resolve(".git").resolve("refs").resolve("heads").resolve(correctMasterBranchLocalName())).get(0);
+        return currentLinesInFile(currentBaseGitDir.resolve(".git").resolve("refs").resolve("heads").resolve(correctMasterBranchLocalName())).get(0);
     }
 
     private List<String> currentLinesInFile(Path path) {
@@ -124,7 +141,13 @@ public class GitTestFactory {
         return line -> line.contains("'" + correctMasterBranchLocalName() + "'");
     }
 
-    public String correctHeadFirstLineAsMaster(){
+    public String correctHeadFirstLineAsMaster() {
         return "ref: refs/heads/" + correctMasterBranchLocalName();
+    }
+
+    public String currentFetchHeadLinesFileInMaster() {
+        return currentFetchHeadLinesInFile().stream()
+                .filter(isFetchHeadOfMaster())
+                .collect(joining());
     }
 }
