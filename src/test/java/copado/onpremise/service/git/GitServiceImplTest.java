@@ -114,9 +114,14 @@ public class GitServiceImplTest {
         assertTrue(correctFileInDeploymentBranch().exists());
     }
 
+    @Test(expected = GitServiceException.class)
+    public void merge_invalidBranch() throws Exception {
+        Branch deploymentBranch = git.getBranch(session, correctMasterBranchLocalName());
+        git.mergeWithNoFastForward(session, deploymentBranch, invalidBranchLocalName());
+    }
 
     @Test
-    public void mergeAndCommit() throws Exception {
+    public void mergeAndEmptyCommit() throws Exception {
         final String commitMessage = "NEW MESSAGE ADDED IN TEST COMMIT";
 
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
@@ -139,6 +144,11 @@ public class GitServiceImplTest {
     @Test
     public void hasDifferences_WhenEquals() throws Exception {
         assertFalse(git.hasDifferences(session, correctMasterBranchLocalName(), correctMasterBranchLocalName()));
+    }
+
+    @Test(expected = GitServiceException.class)
+    public void hasDifferences_WhenInvalidBranch() throws Exception {
+        assertFalse(git.hasDifferences(session, correctMasterBranchLocalName(), invalidBranchLocalName()));
     }
 
 
