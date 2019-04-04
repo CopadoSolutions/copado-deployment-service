@@ -38,7 +38,7 @@ public class UserCasesTest {
         executeJob();
 
         final Path clonedRemotePath = cloneRemoteEnvUatBranch();
-        assertThat(readAccountXmlFromLocalGit(clonedRemotePath),containsString("<label>Active Edited</label>"));
+        assertThat(readAccountXmlFromLocalGit(clonedRemotePath), containsString("<label>Active Edited</label>"));
     }
 
     @Test
@@ -49,7 +49,24 @@ public class UserCasesTest {
         executeJob();
 
         final Path clonedRemotePath = cloneRemoteEnvUatBranch();
-        assertThat(readAccountXmlFromLocalGit(clonedRemotePath),containsString("<label>Active</label>"));
+        assertThat(readAccountXmlFromLocalGit(clonedRemotePath), containsString("<label>Active</label>"));
+    }
+
+
+    @Test
+    public void useCase_basicDeployment_withTestClasses_checkGit() {
+        final String testFolder = "useCase_basicDeployment_withTestClasses_checkGit";
+
+        setUpBasicUseCase(testFolder);
+        assertThat(salesforceServiceLog().getZipsBytes().size(), is(equalTo(0)));
+        assertThat(salesforceServiceLog().getDeployRequests().size(), is(equalTo(0)));
+
+        executeJob();
+
+        assertThat(salesforceServiceLog().getZipsBytes().size(), is(equalTo(1)));
+        assertThat(salesforceServiceLog().getDeployRequests().size(), is(equalTo(1)));
+        assertThat(salesforceServiceLog().getZipsBytes().get(0), is(equalTo(deploymentZipBytesOf(testFolder))));
+        assertThat(salesforceServiceLog().getDeployRequests().get(0), is(equalTo(deployRequestOf(testFolder))));
     }
 
 }
