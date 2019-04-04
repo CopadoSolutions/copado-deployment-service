@@ -155,7 +155,7 @@ public class GitServiceImplTest {
     public void mergeAndPush() throws Exception {
 
         // To do not break the test reference repository, we are going to copy it before pushing.
-        GitTestFactory.setUpWithNewCopyOfRemote(testFolder);
+        GitTestFactory.setUpGitWithNewCopyOfRemote(testFolder);
         session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
 
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
@@ -203,7 +203,7 @@ public class GitServiceImplTest {
 
     private GitSession givenTwoLocalRepositoriesWithSameRemote() throws GitServiceException {
         // To do not break the test reference repository, we are going to copy it before pushing.
-        GitTestFactory.setUpWithNewCopyOfRemote(testFolder);
+        GitTestFactory.setUpGitWithNewCopyOfRemote(testFolder);
         session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
         return git.cloneRepo(createTempDir("oldSessionLocalGit"), buildCorrectCredentials(currentRemoteDirectory()));
     }

@@ -33,7 +33,7 @@ public class GitTestFactory {
         GitTestFactory.dataSet = new GitDataSet();
     }
 
-    public static void setUpWithNewCopyOfRemote(String currentTestFolder){
+    public static void setUpGitWithNewCopyOfRemote(String currentTestFolder){
         setUp(currentTestFolder);
         Path newOriginalRepositoryPath = createTempDir("newRemoteGit");
         try {

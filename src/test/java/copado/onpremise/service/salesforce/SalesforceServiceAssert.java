@@ -12,19 +12,17 @@ import java.util.List;
 
 import static copado.onpremise.service.FileTestFactory.bytesOf;
 import static java.util.Collections.emptyList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 
 @Flogger
 public class SalesforceServiceAssert implements SalesforceService {
 
     private static SalesforceDataSet dataSet;
-    private static SalesforceDataSource dataSource;
+    private static SalesforceServiceLog serviceLog;
 
-    public static void setUpSalesforce(SalesforceDataSource dataSource) {
-        SalesforceServiceAssert.dataSource = dataSource;
+
+    public static void setUpSalesforce() {
+        SalesforceServiceAssert.serviceLog = new SalesforceServiceLog();
         SalesforceServiceAssert.dataSet = SalesforceDataSet.builder()
                 .deploymentResult(
                         DeploymentResult.builder()
@@ -37,19 +35,14 @@ public class SalesforceServiceAssert implements SalesforceService {
                 .build();
     }
 
+    public static SalesforceServiceLog salesforceServiceLog() {
+        return serviceLog;
+    }
+
     @Override
     public DeploymentResult deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath, DeployRequest deployRequest, SalesforceDeployerDelegate delegate) throws CopadoException {
-        try {
-            log.atInfo().log("Given path: %s", zipFileAbsolutePath);
-            assertThat(bytesOf(zipFileAbsolutePath), is(equalTo(dataSource.getCorrectZipBytes())));
-            assertThat(deployRequest,is(equalTo(dataSource.getDeployRequest())));
-        } catch (Exception e) {
-
-            String errorMessage = String.format("Could not read deployment zip bytes of zip: %s", zipFileAbsolutePath);
-            log.atSevere().withCause(e).log(errorMessage);
-            throw new RuntimeException(errorMessage, e);
-        }
-
+        serviceLog.getDeployRequests().add(deployRequest);
+        serviceLog.getZipsBytes().add(bytesOf(zipFileAbsolutePath));
         return dataSet.getDeploymentResult();
     }
 
