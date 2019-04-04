@@ -1,30 +1,27 @@
 package copado.onpremise;
 
-import copado.onpremise.job.OnPremiseDeploymentJob;
+import copado.onpremise.service.git.GitServiceException;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import static copado.onpremise.UserCasesTestFactory.*;
-import static copado.onpremise.configuration.ConfigurationModuleMock.setUpConfig;
-import static copado.onpremise.service.git.GitTestFactory.*;
-import static copado.onpremise.service.salesforce.SalesforceServiceAssert.salesforceServiceLog;
-import static copado.onpremise.service.salesforce.SalesforceServiceAssert.setUpSalesforce;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
+import static copado.onpremise.service.salesforce.SalesforceServiceMock.salesforceServiceLog;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
 public class UserCasesTest {
 
     @Test
-    public void useCase_basicSalesforceDeployment() {
-        final String testFolder = "acceptanceTest_SalesforceBasicDeployment";
+    public void useCase_basicDeployment_checkSalesforce() {
+        final String testFolder = "useCase_basicDeployment_checkSalesforce";
 
-        setUpSalesforce();
-        setUpGitWithNewCopyOfRemote(testFolder);
-        setUpConfig(currentRemoteDirectoryPath(), currentRemoteArtifactRepositoryPath());
+        setUpBasicUseCase(testFolder);
+        assertThat(salesforceServiceLog().getZipsBytes().size(), is(equalTo(0)));
+        assertThat(salesforceServiceLog().getDeployRequests().size(), is(equalTo(0)));
 
-        OnPremiseDeploymentJob job = buildInjector().getInstance(OnPremiseDeploymentJob.class);
-        job.setDeployBranchName("deployment/TEST");
-        job.execute();
+        executeJob();
 
         assertThat(salesforceServiceLog().getZipsBytes().size(), is(equalTo(1)));
         assertThat(salesforceServiceLog().getDeployRequests().size(), is(equalTo(1)));
@@ -32,4 +29,27 @@ public class UserCasesTest {
         assertThat(salesforceServiceLog().getDeployRequests().get(0), is(equalTo(deployRequestOf(testFolder))));
 
     }
+
+    @Test
+    public void useCase_basicDeployment_checkGit() throws IOException, GitServiceException {
+        final String testFolder = "useCase_basicDeployment_checkGit";
+        setUpBasicUseCase(testFolder);
+
+        executeJob();
+
+        final Path clonedRemotePath = cloneRemoteEnvUatBranch();
+        assertThat(readAccountXmlFromLocalGit(clonedRemotePath),containsString("<label>Active Edited</label>"));
+    }
+
+    @Test
+    public void useCase_basicDeployment_withCheckOnly_checkGit() throws IOException, GitServiceException {
+        final String testFolder = "useCase_basicDeployment_withCheckOnly_checkGit";
+        setUpBasicUseCase(testFolder);
+
+        executeJob();
+
+        final Path clonedRemotePath = cloneRemoteEnvUatBranch();
+        assertThat(readAccountXmlFromLocalGit(clonedRemotePath),containsString("<label>Active</label>"));
+    }
+
 }

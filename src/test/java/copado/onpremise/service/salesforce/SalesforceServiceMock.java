@@ -8,22 +8,25 @@ import copado.onpremise.job.DeployRequest;
 import lombok.extern.flogger.Flogger;
 
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import static copado.onpremise.service.FileTestFactory.bytesOf;
 import static java.util.Collections.emptyList;
+import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Flogger
-public class SalesforceServiceAssert implements SalesforceService {
+public class SalesforceServiceMock implements SalesforceService {
 
     private static SalesforceDataSet dataSet;
     private static SalesforceServiceLog serviceLog;
 
 
     public static void setUpSalesforce() {
-        SalesforceServiceAssert.serviceLog = new SalesforceServiceLog();
-        SalesforceServiceAssert.dataSet = SalesforceDataSet.builder()
+        SalesforceServiceMock.serviceLog = new SalesforceServiceLog();
+        SalesforceServiceMock.dataSet = SalesforceDataSet.builder()
                 .deploymentResult(
                         DeploymentResult.builder()
                                 .asyncId("TEST_ASYNC_ID")
@@ -49,7 +52,15 @@ public class SalesforceServiceAssert implements SalesforceService {
 
     @Override
     public List<SObject> query(PartnerConnection partnerConnection, String query) throws CopadoException {
-        return emptyList();
+
+        SObject sourceOrgData = mock(SObject.class);
+        when(sourceOrgData.getChild(any())).thenReturn(sourceOrgData);
+        when(sourceOrgData.getChild(any())).thenReturn(sourceOrgData);
+        when(sourceOrgData.getChild(any())).thenReturn(sourceOrgData);
+        when(sourceOrgData.getChild(any())).thenReturn(sourceOrgData);
+        when(sourceOrgData.getField(any())).thenReturn("TEST_ORG_ID");
+
+        return Arrays.asList(sourceOrgData);
     }
 
     @Override
