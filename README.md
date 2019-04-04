@@ -60,7 +60,7 @@ This is a Guice based project, and some service implementations can be accomplis
 
 | Service                                                      | Description                                                  |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| copado.onpremise.service.git.GitService                      | Git client that allows to connect and execute actions in your git repository. |
+| copado.onpremise.connector.git.GitService                      | Git client that allows to connect and execute actions in your git repository. |
 | copado.onpremise.service.credential.SalesforceCredentialService | Service that allows to retrieve the   credentials for your organizations. |
 | copado.onpremise.service.validation.ValidationService        | Service that will allow or deny the deployment.              |
 

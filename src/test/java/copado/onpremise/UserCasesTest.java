@@ -1,13 +1,13 @@
 package copado.onpremise;
 
-import copado.onpremise.service.git.GitServiceException;
+import copado.onpremise.exception.CopadoException;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
 import static copado.onpremise.UserCasesTestFactory.*;
-import static copado.onpremise.service.salesforce.SalesforceServiceMock.salesforceServiceLog;
+import static copado.onpremise.connector.salesforce.SalesforceServiceMock.salesforceServiceLog;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertThat;
 
@@ -31,7 +31,7 @@ public class UserCasesTest {
     }
 
     @Test
-    public void useCase_basicDeployment_checkGit() throws IOException, GitServiceException {
+    public void useCase_basicDeployment_checkGit() throws IOException, CopadoException {
         final String testFolder = "useCase_basicDeployment_checkGit";
         setUpBasicUseCase(testFolder);
 
@@ -42,7 +42,7 @@ public class UserCasesTest {
     }
 
     @Test
-    public void useCase_basicDeployment_withCheckOnly_checkGit() throws IOException, GitServiceException {
+    public void useCase_basicDeployment_withCheckOnly_checkGit() throws IOException, CopadoException {
         final String testFolder = "useCase_basicDeployment_withCheckOnly_checkGit";
         setUpBasicUseCase(testFolder);
 

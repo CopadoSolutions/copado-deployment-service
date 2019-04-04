@@ -3,18 +3,18 @@ package copado.onpremise;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import copado.onpremise.configuration.ConfigurationModuleMock;
+import copado.onpremise.exception.CopadoException;
 import copado.onpremise.job.DeployRequest;
 import copado.onpremise.job.JobModule;
 import copado.onpremise.job.OnPremiseDeploymentJob;
 import copado.onpremise.service.credential.CredentialModule;
 import copado.onpremise.service.credential.GitCredentials;
 import copado.onpremise.service.file.FileModule;
-import copado.onpremise.service.git.GitModule;
-import copado.onpremise.service.git.GitService;
-import copado.onpremise.service.git.GitServiceException;
-import copado.onpremise.service.git.GitSession;
-import copado.onpremise.service.salesforce.SalesforceModuleMock;
-import copado.onpremise.service.salesforce.dx.DxModule;
+import copado.onpremise.connector.git.GitModule;
+import copado.onpremise.connector.git.GitService;
+import copado.onpremise.connector.git.GitSession;
+import copado.onpremise.connector.salesforce.SalesforceModuleMock;
+import copado.onpremise.connector.salesforce.dx.DxModule;
 import copado.onpremise.service.validation.ValidationModule;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -25,9 +25,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static copado.onpremise.configuration.ConfigurationModuleMock.setUpConfig;
-import static copado.onpremise.service.FileTestFactory.bytesOf;
-import static copado.onpremise.service.git.GitTestFactory.*;
-import static copado.onpremise.service.salesforce.SalesforceServiceMock.setUpSalesforce;
+import static copado.onpremise.connector.FileTestFactory.bytesOf;
+import static copado.onpremise.connector.git.GitTestFactory.*;
+import static copado.onpremise.connector.salesforce.SalesforceServiceMock.setUpSalesforce;
 
 public class UserCasesTestFactory {
 
@@ -72,7 +72,7 @@ public class UserCasesTestFactory {
         job.execute();
     }
 
-    public static Path cloneRemoteEnvUatBranch() throws GitServiceException {
+    public static Path cloneRemoteEnvUatBranch() throws CopadoException {
         final Path remoteRepository = currentRemoteDirectoryPath();
         final GitCredentials gitCredentials = buildCorrectCredentials(remoteRepository.toAbsolutePath().toString());
         final GitService gitService = initGitService();
