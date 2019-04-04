@@ -1,4 +1,4 @@
-package copado.onpremise.service.file;
+package copado.onpremise.connector.file;
 
 
 import com.google.inject.Inject;

@@ -9,7 +9,7 @@ import copado.onpremise.job.JobModule;
 import copado.onpremise.job.OnPremiseDeploymentJob;
 import copado.onpremise.service.credential.CredentialModule;
 import copado.onpremise.service.credential.GitCredentials;
-import copado.onpremise.service.file.FileModule;
+import copado.onpremise.connector.file.FileModule;
 import copado.onpremise.connector.git.GitModule;
 import copado.onpremise.connector.git.GitService;
 import copado.onpremise.connector.git.GitSession;

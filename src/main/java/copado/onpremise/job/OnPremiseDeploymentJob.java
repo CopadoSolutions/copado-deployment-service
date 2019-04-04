@@ -5,7 +5,7 @@ import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.service.credential.GitCredentialService;
-import copado.onpremise.service.file.PathService;
+import copado.onpremise.connector.file.PathService;
 import copado.onpremise.connector.git.Branch;
 import copado.onpremise.connector.git.GitService;
 import copado.onpremise.connector.git.GitSession;
