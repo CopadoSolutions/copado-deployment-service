@@ -218,6 +218,10 @@ public class GitTestFactory {
         return originalRepository;
     }
 
+    public static Path currentRemoteArtifactRepositoryPath(){
+        return currentRemoteDirectoryPath().getParent().resolve("artifact_repository.git");
+    }
+
     private static String currentFirstLineInFileRefsHeads(Path baseRepositoryPath, String branchName) {
         return currentLinesInFile(baseRepositoryPath.resolve("refs").resolve("heads").resolve(branchName)).get(0);
     }

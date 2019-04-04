@@ -1,5 +1,6 @@
 package copado.onpremise.service.salesforce;
 
+import copado.onpremise.job.DeployRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,5 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SalesforceDataSource {
-    byte[] correctZipBytes;
+    private byte[] correctZipBytes;
+    private DeployRequest deployRequest;
 }

@@ -12,7 +12,7 @@ public class ConfigurationModuleMock extends AbstractModule {
 
     private static ConfigurationModuleDataSet dataSet;
 
-    public static void setUp(Path remoteMainRepositoryPath, Path remoteArtifactRepositoryPath) {
+    public static void setUpConfig(Path remoteMainRepositoryPath, Path remoteArtifactRepositoryPath) {
         final String deploymentOrgId = "TEST_DEPLOYMENT_ORG_ID";
         final String artifactRepositoryId = "ARTIFACT_REPOSITORY_ID";
         final String correctAuthor = "TEST_AUTHOR";

@@ -162,7 +162,7 @@ Where **payload.json** has the following structure [DeployRequest.java](./src/ma
 * **orgDestId**: Salesforce Organization id for the destination environment.
 * **testLevel**: Salesforce test level to do the deployment.
 * **testClasses**: Salesforce test classes (optional), just needed when testLevel is RunSpecifiedTests.
-* **isCheckOnly**: Salesforce check only to do the deployment.
+* **checkOnly**: Salesforce check only to do the deployment.
 * **gitAuthor:** Author that will commit into the git repositories.
 * **gitAuthorEmail:** Email that will commit into the git repositories.
 * **artifactRepositoryIds:** Salesforce Id for artifact git repositories.
