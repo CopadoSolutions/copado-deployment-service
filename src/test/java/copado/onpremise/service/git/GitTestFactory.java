@@ -2,6 +2,7 @@ package copado.onpremise.service.git;
 
 
 import copado.onpremise.service.credential.GitCredentials;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +31,17 @@ public class GitTestFactory {
     public static void setUp(String currentTestFolder) {
         GitTestFactory.dataSource = new GitDataSource(currentTestFolder);
         GitTestFactory.dataSet = new GitDataSet();
+    }
+
+    public static void setUpWithNewCopyOfRemote(String currentTestFolder){
+        setUp(currentTestFolder);
+        Path newOriginalRepositoryPath = createTempDir("newRemoteGit");
+        try {
+            FileUtils.copyDirectory(currentRemoteDirectoryPath().toFile(), newOriginalRepositoryPath.toFile());
+        } catch (IOException e) {
+            throw new RuntimeException("Could not copy remote git repository into a new directory", e);
+        }
+        GitTestFactory.dataSource().setCurrentRemoteDir(newOriginalRepositoryPath);
     }
 
     public static void tearDown() {

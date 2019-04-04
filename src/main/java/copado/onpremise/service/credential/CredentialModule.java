@@ -9,5 +9,6 @@ public class CredentialModule extends AbstractModule {
     protected void configure() {
         bind(SalesforceCredentialService.class).to(SalesforceCredentialServiceImpl.class);
         bind(GitCredentialService.class).to(GitCredentialsServiceImpl.class);
+        bind(PropertyCredentialsProvider.class).to(PropertyCredentialsProviderImpl.class);
     }
 }

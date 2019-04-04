@@ -7,9 +7,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
 import static copado.onpremise.service.git.GitTestFactory.*;
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
@@ -158,7 +155,9 @@ public class GitServiceImplTest {
     public void mergeAndPush() throws Exception {
 
         // To do not break the test reference repository, we are going to copy it before pushing.
-        setUpWithNewCopyOfRemote(createTempDir("newRemoteGit"));
+        GitTestFactory.setUpWithNewCopyOfRemote(testFolder);
+        session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
+
         git.cloneBranchFromRepo(session, correctDeploymentBranchLocalName());
         Branch deploymentBranch = git.getBranch(session, correctDeploymentBranchLocalName());
 
@@ -175,22 +174,13 @@ public class GitServiceImplTest {
         assertThat(git.getHead(session), is(equalTo(currentFirstLineInFileRefsHeadsMaster())));
     }
 
-    private void setUpWithNewCopyOfRemote(Path newOriginalRepositoryPath) throws IOException, GitServiceException {
-        GitTestFactory.setUp(testFolder);
-        FileUtils.copyDirectory(currentRemoteDirectoryPath().toFile(), newOriginalRepositoryPath.toFile());
-        GitTestFactory.dataSource().setCurrentRemoteDir(newOriginalRepositoryPath);
-
-        session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
-    }
-
-
     @Test(expected = GitServiceException.class)
     public void fetch_withInvalidBranch() throws GitServiceException {
         git.fetchBranch(session, invalidBranchLocalName());
     }
 
     @Test
-    public void pushAndfetch_withValidBranch() throws CopadoException, IOException {
+    public void pushAndfetch_withValidBranch() throws CopadoException {
 
         GitSession oldSession = givenTwoLocalRepositoriesWithSameRemote();
         whenOnePushesNewChangesToRemote();
@@ -211,9 +201,10 @@ public class GitServiceImplTest {
         git.push(session);
     }
 
-    private GitSession givenTwoLocalRepositoriesWithSameRemote() throws IOException, GitServiceException {
+    private GitSession givenTwoLocalRepositoriesWithSameRemote() throws GitServiceException {
         // To do not break the test reference repository, we are going to copy it before pushing.
-        setUpWithNewCopyOfRemote(createTempDir("newRemoteGit"));
+        GitTestFactory.setUpWithNewCopyOfRemote(testFolder);
+        session = git.cloneRepo(currentBaseGitDir(), buildCorrectCredentials(currentRemoteDirectory()));
         return git.cloneRepo(createTempDir("oldSessionLocalGit"), buildCorrectCredentials(currentRemoteDirectory()));
     }
 

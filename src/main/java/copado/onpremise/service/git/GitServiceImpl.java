@@ -61,7 +61,7 @@ class GitServiceImpl implements GitService {
                 return gitSession;
 
             } catch (Exception e) {
-                log.atSevere().log("Exception while cloning repo:", e);
+                log.atSevere().withCause(e).log("Exception while cloning repo: %s", gitCredentials.getUrl());
                 throw new GitServiceException("Could not clone git repository", e);
             }
         }
