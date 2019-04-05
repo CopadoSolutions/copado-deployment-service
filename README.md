@@ -145,7 +145,7 @@ Where **payload.json** has the following structure [DeployRequest.java](./src/ma
     "My_CustomTestClass_One",
     "My_CustomTestClass_Two"
   ],
-  "isCheckOnly": true,
+  "checkOnly": true,
   "gitAuthor": "GIT_AUTHOR",
   "gitAuthorEmail": "GIT_AUTHOR_EMAIL",
   "artifactRepositoryIds": [

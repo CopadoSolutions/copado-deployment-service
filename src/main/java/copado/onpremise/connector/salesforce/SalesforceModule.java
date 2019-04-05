@@ -2,15 +2,20 @@ package copado.onpremise.connector.salesforce;
 
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Provides;
 
 public class SalesforceModule extends AbstractModule {
 
+    private SalesforceUtils salesforceUtils;
+
     @Override
     protected void configure() {
-        bind(CopadoService.class).to(CopadoServiceImpl.class);
-        bind(MetadataConnectionService.class).to(MetadataConnectionServiceImpl.class);
-        bind(SalesforceService.class).to(SalesforceServiceImpl.class);
         bind(PartnerConnectionBuilder.class).to(PartnerConnectionBuilderImpl.class);
+    }
+
+    @Provides
+    SalesforceUtils salesforceUtils() {
+        return salesforceUtils;
     }
 
 }

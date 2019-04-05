@@ -1,5 +1,6 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.copado;
 
+import copado.onpremise.connector.salesforce.TipLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.codehaus.jackson.annotate.JsonProperty;

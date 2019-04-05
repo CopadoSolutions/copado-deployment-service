@@ -1,4 +1,4 @@
-package copado.onpremise.connector.salesforce.dx;
+package copado.onpremise.connector.copadodx;
 
 import com.google.inject.Inject;
 import lombok.AllArgsConstructor;

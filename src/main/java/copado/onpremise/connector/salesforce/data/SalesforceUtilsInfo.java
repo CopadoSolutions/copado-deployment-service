@@ -1,4 +1,4 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.salesforce.data;
 
 import lombok.Builder;
 import lombok.Data;

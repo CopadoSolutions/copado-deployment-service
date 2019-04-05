@@ -1,4 +1,4 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.salesforce.metadata;
 
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.MetadataConnection;
@@ -6,6 +6,9 @@ import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 import copado.onpremise.configuration.ApplicationConfiguration;
+import copado.onpremise.connector.salesforce.PartnerConnectionBuilder;
+import copado.onpremise.connector.salesforce.SalesforceUtils;
+import copado.onpremise.connector.salesforce.data.SalesforceUtilsInfo;
 import copado.onpremise.service.credential.SalesforceCredentialService;
 import copado.onpremise.service.credential.SalesforceCredentials;
 import lombok.AllArgsConstructor;
@@ -21,6 +24,8 @@ public class MetadataConnectionServiceImpl implements MetadataConnectionService 
     private SalesforceCredentialService salesforceCredentialService;
 
     private PartnerConnectionBuilder partnerConnectionBuilder;
+
+    private SalesforceUtils salesforceUtils;
 
     public MetadataConnection build(String orgId) throws ConnectionException {
 
@@ -57,7 +62,7 @@ public class MetadataConnectionServiceImpl implements MetadataConnectionService 
         config.setServiceEndpoint(serviceEndpint.replace("/services/Soap/u/", "/services/Soap/m/"));
         config.setSessionId(sessionId);
         config.setManualLogin(true);
-        if (SalesforceUtils.existProxyConfiguration(info.getProxyUsername(), info.getProxyPassword(), info.getProxyHost())) {
+        if (salesforceUtils.existProxyConfiguration(info.getProxyUsername(), info.getProxyPassword(), info.getProxyHost())) {
             log.atInfo().log("Using Proxy for SFDC connection.");
             config.setProxy(info.getProxyHost(), Integer.valueOf(info.getProxyPort()));
             config.setProxyUsername(info.getProxyUsername());

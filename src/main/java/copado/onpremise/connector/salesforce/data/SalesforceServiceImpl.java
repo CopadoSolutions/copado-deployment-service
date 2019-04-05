@@ -1,4 +1,4 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.salesforce.data;
 
 
 import com.google.inject.Inject;
@@ -10,6 +10,8 @@ import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
+import copado.onpremise.connector.salesforce.TestLevelBuilder;
+import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.job.DeployRequest;
 import lombok.AllArgsConstructor;
@@ -217,7 +219,7 @@ public class SalesforceServiceImpl implements SalesforceService {
      * Read the zip file contents into a byte array.
      *
      * @return byte[]
-     * @throws Exception - if cannot find the zip file to deploy
+     * @throws CopadoException - if cannot find the zip file to deploy
      */
     private byte[] readZipFile(String zipFileAbsolutePath) throws CopadoException {
 

@@ -1,5 +1,6 @@
 package copado.onpremise.connector.salesforce;
 
+import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

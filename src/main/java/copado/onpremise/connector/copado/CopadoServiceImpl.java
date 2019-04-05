@@ -1,9 +1,12 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.copado;
 
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
+import copado.onpremise.connector.salesforce.PartnerConnectionBuilder;
+import copado.onpremise.connector.salesforce.data.SalesforceService;
+import copado.onpremise.connector.salesforce.data.SalesforceUtilsInfo;
 import copado.onpremise.exception.CopadoException;
 import lombok.extern.flogger.Flogger;
 
@@ -99,7 +102,6 @@ public class CopadoServiceImpl implements CopadoService {
     }
 
     public String getDeploymentId(String deploymentJobId) throws CopadoException {
-        //TODO:: Sigo aqui
 
         log.atInfo().log("Reading deployment identifier for deployment job[%s]", deploymentJobId);
         if (deploymentJobId == null) {

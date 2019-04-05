@@ -101,7 +101,7 @@ class GitServiceImpl implements GitService {
         log.atInfo().log("Id:%s for branch:%s%s", promoteBranchRef.getObjectId(), ORIGIN, branch);
 
         toBeReturn.setName(promoteBranchRef.getName());
-        toBeReturn.setId(promoteBranchRef.getObjectId());
+        toBeReturn.setObjectId(promoteBranchRef.getObjectId());
 
 
         return toBeReturn;
@@ -127,7 +127,7 @@ class GitServiceImpl implements GitService {
 
         log.atInfo().log("%s with fast-forward mode.", commitMessage);
         handleExceptions(() -> gitSession.getGit().merge()
-                .include(branch.getId())
+                .include(branch.getObjectId())
                 .setCommit(true)
                 .setFastForward(fastForwardMode)
                 .setMessage(commitMessage)
@@ -248,7 +248,7 @@ class GitServiceImpl implements GitService {
     private void removeGitLockFile(Path baseDirGit) {
         Path issuedFile = baseDirGit.resolve(".git").resolve("gc.log.lock");
         if (issuedFile.toFile().exists()) {
-            issuedFile.toFile().delete();
+            log.atInfo().log("Removed %s file: %s", issuedFile, issuedFile.toFile().delete());
         }
     }
 

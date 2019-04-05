@@ -7,10 +7,10 @@ import org.eclipse.jgit.lib.ObjectId;
 class BranchImpl implements Branch {
 
     private String name;
-    private ObjectId id;
+    private ObjectId objectId;
 
     public String getIdentifier(){
-        return id.getName();
+        return objectId.getName();
     }
 
 }

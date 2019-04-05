@@ -1,4 +1,4 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.salesforce.metadata;
 
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.ws.ConnectionException;

@@ -3,13 +3,16 @@ package copado.onpremise;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import copado.onpremise.configuration.ConfigurationModule;
-import copado.onpremise.job.JobModule;
-import copado.onpremise.job.OnPremiseDeploymentJob;
-import copado.onpremise.service.credential.CredentialModule;
+import copado.onpremise.connector.copado.CopadoModule;
+import copado.onpremise.connector.copadodx.DxModule;
 import copado.onpremise.connector.file.FileModule;
 import copado.onpremise.connector.git.GitModule;
 import copado.onpremise.connector.salesforce.SalesforceModule;
-import copado.onpremise.connector.salesforce.dx.DxModule;
+import copado.onpremise.connector.salesforce.data.SalesforceDataModule;
+import copado.onpremise.connector.salesforce.metadata.SalesforceMetadataModule;
+import copado.onpremise.job.JobModule;
+import copado.onpremise.job.OnPremiseDeploymentJob;
+import copado.onpremise.service.credential.CredentialModule;
 import copado.onpremise.service.validation.ValidationModule;
 import lombok.extern.flogger.Flogger;
 import org.apache.commons.cli.*;
@@ -35,11 +38,8 @@ public class Application {
 
             if (line.hasOption(OPT_DEPLOY_BRANCH_NAME)) {
                 String deployBranchName = line.getOptionValue(OPT_DEPLOY_BRANCH_NAME);
-
-                Injector injector = Guice.createInjector(new ConfigurationModule(), new JobModule(), new CredentialModule(), new FileModule(), new GitModule(), new SalesforceModule(), new ValidationModule(), new DxModule());
-                OnPremiseDeploymentJob job = injector.getInstance(OnPremiseDeploymentJob.class);
-                job.setDeployBranchName(deployBranchName);
-                job.execute();
+                Injector injector = buildInjector();
+                executeDeploymentJob(deployBranchName, injector);
 
             } else {
                 HelpFormatter formatter = new HelpFormatter();
@@ -50,6 +50,27 @@ public class Application {
             log.atSevere().log("Could not run copado deployment service. Error: %s", e.getMessage());
         }
 
+    }
+
+    private static void executeDeploymentJob(String deployBranchName, Injector injector) {
+        OnPremiseDeploymentJob job = injector.getInstance(OnPremiseDeploymentJob.class);
+        job.setDeployBranchName(deployBranchName);
+        job.execute();
+    }
+
+    private static Injector buildInjector() throws ConfigurationException {
+        return Guice.createInjector(
+                            new ConfigurationModule(),
+                            new JobModule(),
+                            new CredentialModule(),
+                            new FileModule(),
+                            new GitModule(),
+                            new SalesforceModule(),
+                            new SalesforceDataModule(),
+                            new SalesforceMetadataModule(),
+                            new CopadoModule(),
+                            new ValidationModule(),
+                            new DxModule());
     }
 
 }

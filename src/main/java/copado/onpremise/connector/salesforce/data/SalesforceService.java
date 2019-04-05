@@ -1,9 +1,10 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.salesforce.data;
 
 
 import com.sforce.soap.metadata.MetadataConnection;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.sobject.SObject;
+import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.job.DeployRequest;
 

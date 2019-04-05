@@ -1,6 +1,9 @@
-package copado.onpremise.connector.salesforce;
+package copado.onpremise.connector.salesforce.data;
 
 import com.sforce.soap.metadata.*;
+import copado.onpremise.connector.copado.CopadoTip;
+import copado.onpremise.connector.salesforce.TipLevel;
+import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
 import lombok.extern.flogger.Flogger;
 import org.apache.commons.lang.StringUtils;
 
@@ -80,7 +83,7 @@ class DeploymentResultChecker {
     }
 
     private CopadoTip buildCopadoTip(TipLevel tipLevel, String message) {
-        return new CopadoTip(ERROR, message, "");
+        return new CopadoTip(tipLevel, message, "");
     }
 
     private String buildFailureMessage(DeployMessage failure) {

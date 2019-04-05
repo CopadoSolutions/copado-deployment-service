@@ -1,4 +1,4 @@
-package copado.onpremise.connector.salesforce.dx;
+package copado.onpremise.connector.copadodx;
 
 public interface CopadoDxService {
 

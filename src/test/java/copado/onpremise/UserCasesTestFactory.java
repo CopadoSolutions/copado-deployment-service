@@ -3,18 +3,21 @@ package copado.onpremise;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import copado.onpremise.configuration.ConfigurationModuleMock;
+import copado.onpremise.connector.copado.CopadoModule;
+import copado.onpremise.connector.copadodx.DxModule;
+import copado.onpremise.connector.file.FileModule;
+import copado.onpremise.connector.git.GitModule;
+import copado.onpremise.connector.git.GitService;
+import copado.onpremise.connector.git.GitSession;
+import copado.onpremise.connector.salesforce.SalesforceDataModuleMock;
+import copado.onpremise.connector.salesforce.SalesforceMetadataModuleMock;
+import copado.onpremise.connector.salesforce.SalesforceModuleMock;
 import copado.onpremise.exception.CopadoException;
 import copado.onpremise.job.DeployRequest;
 import copado.onpremise.job.JobModule;
 import copado.onpremise.job.OnPremiseDeploymentJob;
 import copado.onpremise.service.credential.CredentialModule;
 import copado.onpremise.service.credential.GitCredentials;
-import copado.onpremise.connector.file.FileModule;
-import copado.onpremise.connector.git.GitModule;
-import copado.onpremise.connector.git.GitService;
-import copado.onpremise.connector.git.GitSession;
-import copado.onpremise.connector.salesforce.SalesforceModuleMock;
-import copado.onpremise.connector.salesforce.dx.DxModule;
 import copado.onpremise.service.validation.ValidationModule;
 import org.apache.commons.io.FileUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -39,6 +42,9 @@ public class UserCasesTestFactory {
                 new FileModule(),
                 new GitModule(),
                 new SalesforceModuleMock(),
+                new SalesforceDataModuleMock(),
+                new SalesforceMetadataModuleMock(),
+                new CopadoModule(),
                 new ValidationModule(),
                 new DxModule());
     }
