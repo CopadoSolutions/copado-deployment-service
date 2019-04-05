@@ -20,7 +20,7 @@ public class PartnerConnectionBuilderImpl implements PartnerConnectionBuilder {
 
     }
 
-    private ConnectorConfig createConfig(SalesforceUtilsInfo info) {
+    ConnectorConfig createConfig(SalesforceUtilsInfo info) {
         final ConnectorConfig config = new ConnectorConfig();
         config.setUsername(info.getUsername());
         config.setPassword(info.getPassword() + info.getToken());

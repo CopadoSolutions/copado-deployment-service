@@ -73,9 +73,11 @@ All of these services includes a default implementation into the given project.
 To run the automated tests for this system, run the following command
 
 ```
-mvn verify
+mvn verify -DdestinationOrgUsername=SALESFORCE_USER -DdestinationOrgPassword=SALESFORCE_PASSWORD -DdestinationOrgToken=SALESFORCE_TOKEN
 ```
-
+* `SALESFORCE_USER` This user will be used to validate a deploy of a zip for testing proposes
+* `SALESFORCE_PASSWORD` Password of `SALESFORCE_USER`.
+* `SALESFORCE_TOKEN` Token of `SALESFORCE_USER`.
 
 
 ## Deployment

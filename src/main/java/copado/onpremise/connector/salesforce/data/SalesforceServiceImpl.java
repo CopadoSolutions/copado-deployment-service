@@ -9,7 +9,6 @@ import com.sforce.soap.partner.QueryResult;
 import com.sforce.soap.partner.SaveResult;
 import com.sforce.soap.partner.sobject.SObject;
 import com.sforce.ws.ConnectionException;
-import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.connector.salesforce.TestLevelBuilder;
 import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
 import copado.onpremise.exception.CopadoException;
@@ -37,8 +36,6 @@ public class SalesforceServiceImpl implements SalesforceService {
     private static final int MAX_NUM_POLL_REQUESTS = 50;
 
     private Provider<DeploymentResultChecker> copadoTipFactoryProvider;
-
-    private ApplicationConfiguration conf;
 
     public DeploymentResult deployZip(MetadataConnection metadataConnection, String zipFileAbsolutePath, DeployRequest deployRequest, SalesforceDeployerDelegate delegate) throws CopadoException {
 

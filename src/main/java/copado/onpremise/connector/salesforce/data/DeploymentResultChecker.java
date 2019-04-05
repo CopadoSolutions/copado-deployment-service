@@ -4,6 +4,7 @@ import com.sforce.soap.metadata.*;
 import copado.onpremise.connector.copado.CopadoTip;
 import copado.onpremise.connector.salesforce.TipLevel;
 import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
+import copado.onpremise.exception.CopadoException;
 import lombok.extern.flogger.Flogger;
 import org.apache.commons.lang.StringUtils;
 
@@ -15,9 +16,9 @@ class DeploymentResultChecker {
     /**
      * @param result
      * @return
-     * @throws InvalidDeployResult
+     * @throws CopadoException
      */
-    public void fillWithErrorInformation(DeploymentResult deploymentResult, DeployResult result) throws InvalidDeployResult {
+    public void fillWithErrorInformation(DeploymentResult deploymentResult, DeployResult result) throws CopadoException {
         validate(result);
         checkErrorMessage(deploymentResult, result);
         checkComponentFailures(deploymentResult, result.getDetails());
@@ -53,13 +54,13 @@ class DeploymentResultChecker {
         }
     }
 
-    private void validate(DeployResult result) throws InvalidDeployResult {
+    private void validate(DeployResult result) throws CopadoException {
         DeployDetails details = result.getDetails();
         if (details == null) {
             String errorMessage = StringUtils.isNotBlank(result.getErrorMessage()) ? result.getErrorMessage() : "No error message returned by Salesforce metadata api.";
             String exceptionMessage = String.format("Result without details. ErrorMessage: %s", errorMessage);
             log.atSevere().log(exceptionMessage);
-            throw new InvalidDeployResult(exceptionMessage);
+            throw new CopadoException(exceptionMessage);
         }
     }
 
