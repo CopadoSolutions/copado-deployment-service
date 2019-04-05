@@ -16,17 +16,17 @@ import java.util.List;
 @Flogger
 public class CopadoServiceImpl implements CopadoService {
 
-    private PartnerConnection connection;
+    private PartnerConnection partnerConnection;
 
-    private ApplicationConfiguration conf;
+    private ApplicationConfiguration appConf;
 
     private PartnerConnectionBuilder partnerConnectionBuilder;
 
     private SalesforceService salesforceService;
 
     @Inject
-    public CopadoServiceImpl(ApplicationConfiguration conf, PartnerConnectionBuilder partnerConnectionBuilder, SalesforceService salesforceService) throws ConnectionException {
-        this.conf = conf;
+    public CopadoServiceImpl(ApplicationConfiguration appConf, PartnerConnectionBuilder partnerConnectionBuilder, SalesforceService salesforceService) throws ConnectionException {
+        this.appConf = appConf;
         this.partnerConnectionBuilder = partnerConnectionBuilder;
         this.salesforceService = salesforceService;
         init();
@@ -34,16 +34,16 @@ public class CopadoServiceImpl implements CopadoService {
 
     private void init() throws ConnectionException {
 
-        connection = partnerConnectionBuilder.createPartnerConnection(
+        partnerConnection = partnerConnectionBuilder.createPartnerConnection(
                 SalesforceUtilsInfo.builder()
-                        .username(conf.getCopadoUsername())
-                        .password(conf.getCopadoPassword())
-                        .token(conf.getCopadoToken())
-                        .loginUrl(conf.getCopadoUrl())
-                        .proxyHost(conf.getProxyHost())
-                        .proxyPort(conf.getProxyPort())
-                        .proxyUsername(conf.getProxyUsername())
-                        .proxyPassword(conf.getProxyPassword())
+                        .username(appConf.getCopadoUsername())
+                        .password(appConf.getCopadoPassword())
+                        .token(appConf.getCopadoToken())
+                        .loginUrl(appConf.getCopadoUrl())
+                        .proxyHost(appConf.getProxyHost())
+                        .proxyPort(appConf.getProxyPort())
+                        .proxyUsername(appConf.getProxyUsername())
+                        .proxyPassword(appConf.getProxyPassword())
                         .build()
         );
     }
@@ -52,7 +52,7 @@ public class CopadoServiceImpl implements CopadoService {
     @Override
     public void updateDeploymentJobStatus(String id, String status) {
         try {
-            salesforceService.updateStringField(connection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Status__c", status);
+            salesforceService.updateStringField(partnerConnection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Status__c", status);
         } catch (CopadoException e) {
             log.atSevere().withCause(e).log("Could not update deployment status");
         }
@@ -60,12 +60,12 @@ public class CopadoServiceImpl implements CopadoService {
 
     @Override
     public void updateDeploymentJobValidationId(String id, String validationId) throws CopadoException {
-        salesforceService.updateStringField(connection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Validation_ID__c", validationId);
+        salesforceService.updateStringField(partnerConnection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Validation_ID__c", validationId);
     }
 
     @Override
     public void updateDeploymentJobAsyncId(String id, String asyncId) throws CopadoException {
-        salesforceService.updateStringField(connection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Async_Job_ID__c", asyncId);
+        salesforceService.updateStringField(partnerConnection, id, getNamespace() + "Deployment_Job__c", getNamespace() + "Async_Job_ID__c", asyncId);
     }
 
     @Override
@@ -79,7 +79,7 @@ public class CopadoServiceImpl implements CopadoService {
 
         List<SObject> result;
         try {
-            result = salesforceService.query(connection, buildGetSourceOrgIdQuery(deploymentJobId));
+            result = salesforceService.query(partnerConnection, buildGetSourceOrgIdQuery(deploymentJobId));
         } catch (CopadoException e) {
             log.atSevere().withCause(e).log("Search for source org identifier failed");
             throw new CopadoException("Search for source org identifier failed");
@@ -112,7 +112,7 @@ public class CopadoServiceImpl implements CopadoService {
         String query = String.format(replaceCopadoNamespace("SELECT copado__Step__r.copado__Deployment__r.Id FROM copado__Deployment_Job__c WHERE Id = '%s'"), deploymentJobId);
         List<SObject> result;
         try {
-            result = salesforceService.query(connection, query);
+            result = salesforceService.query(partnerConnection, query);
         } catch (CopadoException e) {
             log.atSevere().withCause(e).log("Search for deployment identifier failed");
             throw new CopadoException("Search for deployment identifier failed");
@@ -136,7 +136,7 @@ public class CopadoServiceImpl implements CopadoService {
 
     @Override
     public String createTxtAttachment(String parentId, String attachmentName, String attachmentContent) throws CopadoException {
-        return salesforceService.createTxtAttachment(connection, parentId, attachmentName, attachmentContent);
+        return salesforceService.createTxtAttachment(partnerConnection, parentId, attachmentName, attachmentContent);
     }
 
     private String buildGetSourceOrgIdQuery(String deploymentJobId) {
@@ -148,7 +148,7 @@ public class CopadoServiceImpl implements CopadoService {
     }
 
     private String getNamespace() {
-        String ns = conf.getRenameNamespace();
+        String ns = appConf.getRenameNamespace();
         return ns != null ? ns : "copado__";
     }
 
