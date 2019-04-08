@@ -5,7 +5,7 @@ import lombok.extern.flogger.Flogger;
 @Flogger
 public class CopadoExceptionHandler {
 
-    public static <T, E extends CopadoException> T rethrow(String errorMessage, CopadoExceptionHandler.Code<T> codeBlock) throws CopadoException {
+    public static <T> T rethrow(String errorMessage, CopadoExceptionHandler.Code<T> codeBlock) throws CopadoException {
         try {
             return codeBlock.execute();
         } catch (Throwable e) {

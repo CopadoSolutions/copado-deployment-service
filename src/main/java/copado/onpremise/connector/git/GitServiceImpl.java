@@ -174,7 +174,7 @@ class GitServiceImpl implements GitService {
         List<DiffEntry> diffEntries = handleExceptions(() ->
                 gitSession.getGit().diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).call());
 
-        if (diffEntries.size() > 0) {
+        if (!diffEntries.isEmpty()) {
             log.atInfo().log("Found:'%s' diff entries", diffEntries.size());
             for (DiffEntry de : diffEntries) {
                 log.atInfo().log("Diff Entry:'%s' - New path:'%s' - Old path:'%s'", de.getChangeType(), de.getNewPath(), de.getOldPath());
@@ -247,9 +247,13 @@ class GitServiceImpl implements GitService {
      */
     private void removeGitLockFile(Path baseDirGit) {
         Path issuedFile = baseDirGit.resolve(".git").resolve("gc.log.lock");
-        if (issuedFile.toFile().exists()) {
-            log.atInfo().log("Removed %s file: %s", issuedFile, issuedFile.toFile().delete());
+
+        try {
+            log.atInfo().log("Removed %s file: %s", issuedFile, Files.deleteIfExists(issuedFile));
+        } catch (IOException e) {
+            log.atWarning().withCause(e).log("Could not delete .git/gc.log.lock ");
         }
+
     }
 
     private void processGitIgnore(GitSessionImpl gitSession) {

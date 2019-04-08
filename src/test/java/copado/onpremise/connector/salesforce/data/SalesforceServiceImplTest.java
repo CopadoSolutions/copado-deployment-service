@@ -22,7 +22,6 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.*;
 
 @Flogger
@@ -95,7 +94,7 @@ public class SalesforceServiceImplTest {
 
     @Test(expected = CopadoException.class)
     public void updateStringField_WhenIdIsNull() throws CopadoException {
-        service.updateStringField(partnerConnection, null, anyString(), anyString(), anyString());
+        service.updateStringField(partnerConnection, null, "", "", "");
     }
 
     @Test

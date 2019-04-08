@@ -2,7 +2,6 @@ package copado.onpremise.connector.copado;
 
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.sobject.SObject;
-import com.sforce.ws.ConnectionException;
 import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.connector.salesforce.PartnerConnectionBuilder;
 import copado.onpremise.connector.salesforce.data.SalesforceService;
@@ -30,7 +29,7 @@ public class CopadoServiceImplTest {
     private PartnerConnection partnerConnection;
 
     @Before
-    public void setUp() throws ConnectionException {
+    public void setUp() throws CopadoException {
         appConf = mock(ApplicationConfiguration.class);
         partnerConnectionBuilder = mock(PartnerConnectionBuilder.class);
         salesforceService = mock(SalesforceService.class);

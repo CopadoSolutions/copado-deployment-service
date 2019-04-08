@@ -4,6 +4,7 @@ package copado.onpremise.connector.salesforce.data;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.sforce.soap.metadata.*;
+import com.sforce.soap.partner.Error;
 import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.soap.partner.QueryResult;
 import com.sforce.soap.partner.SaveResult;
@@ -147,9 +148,9 @@ public class SalesforceServiceImpl implements SalesforceService {
     private void idle(long waitTimeMilliSecs) throws CopadoException {
         try {
             Thread.sleep(waitTimeMilliSecs);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             log.atSevere().withCause(e).log("Process interrupted while waiting for deployment completion.");
-            throw new CopadoException("Process interrupted while waiting for deployment completion.");
+            throw new CopadoException("Process interrupted while waiting for deployment completion.", e);
         }
     }
 
@@ -319,7 +320,12 @@ public class SalesforceServiceImpl implements SalesforceService {
             SaveResult[] srs = partnerConnection.create(new SObject[]{att});
             for (SaveResult sr : srs) {
                 if (!sr.isSuccess()) {
-                    log.atInfo().log("Could not create Attachment:'%s' for id:'%s' - Error:'%s'", attachmentName, parentId, Arrays.stream(sr.getErrors()).map(error -> error.getMessage()).collect(Collectors.joining(", ")));
+                    log.atInfo().log("Could not create Attachment:'%s' for id:'%s' - Error:'%s'",
+                            attachmentName,
+                            parentId,
+                            Arrays.stream(sr.getErrors())
+                                    .map(Error::getMessage)
+                                    .collect(Collectors.joining(", ")));
                 } else {
                     attId = sr.getId();
                 }

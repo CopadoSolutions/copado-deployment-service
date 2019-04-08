@@ -7,7 +7,6 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class PartnerConnectionBuilderImplTest {
 
@@ -18,7 +17,7 @@ public class PartnerConnectionBuilderImplTest {
         final String correctPassword = "PASSWORD";
         final String correctToken = "TOKEN";
         final String correctUrl = "http://URL.com";
-        final PartnerConnectionBuilderImpl builder = new PartnerConnectionBuilderImpl(mock(SalesforceUtils.class));
+        final PartnerConnectionBuilderImpl builder = new PartnerConnectionBuilderImpl(new SalesforceUtils());
 
 
         final SalesforceUtilsInfo info = SalesforceUtilsInfo.builder()

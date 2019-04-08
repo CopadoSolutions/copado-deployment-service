@@ -1,10 +1,10 @@
 package copado.onpremise.connector.salesforce.metadata;
 
 import com.sforce.soap.metadata.MetadataConnection;
-import com.sforce.ws.ConnectionException;
+import copado.onpremise.exception.CopadoException;
 
 
 public interface MetadataConnectionService {
 
-    MetadataConnection build(String orgId) throws ConnectionException;
+    MetadataConnection build(String orgId) throws CopadoException;
 }

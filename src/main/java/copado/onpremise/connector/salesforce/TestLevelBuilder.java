@@ -4,6 +4,8 @@ import com.sforce.soap.metadata.TestLevel;
 
 public class TestLevelBuilder {
 
+    private TestLevelBuilder(){}
+
     public static TestLevel build(String testLevel){
         switch (testLevel) {
             case "RunAllTestsInOrg":

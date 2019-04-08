@@ -9,6 +9,7 @@ import copado.onpremise.configuration.ApplicationConfiguration;
 import copado.onpremise.connector.salesforce.PartnerConnectionBuilder;
 import copado.onpremise.connector.salesforce.SalesforceUtils;
 import copado.onpremise.connector.salesforce.data.SalesforceUtilsInfo;
+import copado.onpremise.exception.CopadoException;
 import copado.onpremise.service.credential.SalesforceCredentialService;
 import copado.onpremise.service.credential.SalesforceCredentials;
 import lombok.AllArgsConstructor;
@@ -27,12 +28,13 @@ public class MetadataConnectionServiceImpl implements MetadataConnectionService 
 
     private SalesforceUtils salesforceUtils;
 
-    public MetadataConnection build(String orgId) throws ConnectionException {
+    @Override
+    public MetadataConnection build(String orgId) throws CopadoException {
 
         SalesforceCredentials salesforceCredentials = salesforceCredentialService.getCredentials(orgId);
 
         if(StringUtils.isEmpty(salesforceCredentials.getUrl()) || StringUtils.isEmpty(salesforceCredentials.getUsername())){
-            throw new RuntimeException("Salesforce credentials not found for id: " + orgId);
+            throw new CopadoException("Salesforce credentials not found for id: " + orgId);
         }
 
         SalesforceUtilsInfo sfLoginInfo = SalesforceUtilsInfo.builder()
@@ -51,8 +53,14 @@ public class MetadataConnectionServiceImpl implements MetadataConnectionService 
         return createMetadataConnection(sfLoginInfo, partnerConnection);
     }
 
-    private MetadataConnection createMetadataConnection(SalesforceUtilsInfo info, PartnerConnection pc) throws ConnectionException {
-        return new MetadataConnection(createMetadataConnectorConfig(info, pc.getConfig().getSessionId(), pc.getConfig().getServiceEndpoint()));
+    private MetadataConnection createMetadataConnection(SalesforceUtilsInfo info, PartnerConnection pc) throws CopadoException {
+        try {
+            return new MetadataConnection(createMetadataConnectorConfig(info, pc.getConfig().getSessionId(), pc.getConfig().getServiceEndpoint()));
+        } catch (ConnectionException e) {
+            String errorMessage = "Could not create metadata connection";
+            log.atSevere().withCause(e).log(errorMessage);
+            throw new CopadoException(errorMessage,e);
+        }
     }
 
     private ConnectorConfig createMetadataConnectorConfig(SalesforceUtilsInfo info, String sessionId, String serviceEndpint) {

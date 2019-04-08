@@ -5,6 +5,7 @@ import com.sforce.soap.partner.PartnerConnection;
 import com.sforce.ws.ConnectionException;
 import com.sforce.ws.ConnectorConfig;
 import copado.onpremise.connector.salesforce.data.SalesforceUtilsInfo;
+import copado.onpremise.exception.CopadoException;
 import lombok.AllArgsConstructor;
 import lombok.extern.flogger.Flogger;
 
@@ -15,8 +16,14 @@ public class PartnerConnectionBuilderImpl implements PartnerConnectionBuilder {
     private SalesforceUtils salesforceUtils;
 
     @Override
-    public PartnerConnection createPartnerConnection(SalesforceUtilsInfo info) throws ConnectionException {
-        return new PartnerConnection(createConfig(info));
+    public PartnerConnection createPartnerConnection(SalesforceUtilsInfo info) throws CopadoException {
+        try {
+            return new PartnerConnection(createConfig(info));
+        } catch (ConnectionException e) {
+            String errorMessage = "Could not create partner connection";
+            log.atSevere().withCause(e).log(errorMessage);
+            throw new CopadoException(errorMessage, e);
+        }
 
     }
 
