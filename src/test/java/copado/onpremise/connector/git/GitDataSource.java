@@ -14,6 +14,8 @@ public class GitDataSource {
 
     private Path currentBaseGitDir;
     private Path currentRemoteDir;
+    private Path currentFirstArtifactRemote;
+    private Path currentSecondArtifactRemote;
 
     public GitDataSource(String currentTestFolder) {
         currentBaseGitDir = GitTestFactory.createGitTempDir();

@@ -69,7 +69,20 @@ public class UserCasesTestFactory {
     public static void setUpBasicUseCase(String testFolder) {
         setUpSalesforce();
         setUpGitWithNewCopyOfRemote(testFolder);
-        setUpConfig(currentRemoteDirectoryPath(), currentRemoteArtifactRepositoryPath());
+        setUpConfig(currentRemoteDirectoryPath().toAbsolutePath().toString(), "", "");
+    }
+
+    public static void setUpBasicUseCaseWithArtifacts(String testFolder) {
+        setUpSalesforce();
+        setUpGitWithNewCopyOfRemote(testFolder);
+
+        Path firstArtifactRemote = setUpGitWithFirstArtifactRemote(testFolder);
+        Path secondArtifactRemote = setUpGitWithSecondArtifactRemote(testFolder);
+
+        setUpConfig(
+                currentRemoteDirectoryPath().toAbsolutePath().toString(),
+                firstArtifactRemote.toAbsolutePath().toString(),
+                secondArtifactRemote.toAbsolutePath().toString());
     }
 
     public static void executeJob() {
@@ -79,17 +92,41 @@ public class UserCasesTestFactory {
     }
 
     public static Path cloneRemoteEnvUatBranch() throws CopadoException {
-        final Path remoteRepository = currentRemoteDirectoryPath();
+        return cloneRemoteBranch("env/UAT", currentRemoteDirectoryPath());
+    }
+
+    public static Path cloneMasterFromFirstAritactRepository() throws CopadoException {
+        return cloneRemoteBranch("master", dataSource().getCurrentFirstArtifactRemote());
+    }
+
+    public static Path cloneMasterFromSecondAritactRepository() throws CopadoException {
+        return cloneRemoteBranch("master", dataSource().getCurrentSecondArtifactRemote());
+    }
+
+    public static Path cloneRemoteBranch(String branchName, Path remoteRepository) throws CopadoException {
         final GitCredentials gitCredentials = buildCorrectCredentials(remoteRepository.toAbsolutePath().toString());
         final GitService gitService = initGitService();
         final GitSession gitSession = gitService.cloneRepo(createTempDir("assertGitRepository"), gitCredentials);
-        gitService.cloneBranchFromRepo(gitSession, "env/UAT");
-        gitService.checkout(gitSession, "env/UAT");
+        gitService.cloneBranchFromRepo(gitSession, branchName);
+        gitService.checkout(gitSession, branchName);
         return gitSession.getBaseDir();
     }
 
     public static String readAccountXmlFromLocalGit(Path path) throws IOException {
         Path accountXml = path.resolve("objects").resolve("Account.object");
+        return FileUtils.readFileToString(accountXml.toFile());
+    }
+
+    public static String readActiveFieldFromAccountXmlInGit(Path path) throws IOException {
+        Path accountXml = path
+                .resolve("MainArtifact")
+                .resolve("main")
+                .resolve("default")
+                .resolve("objects")
+                .resolve("Account")
+                .resolve("fields")
+                .resolve("Active__c.field-meta.xml");
+
         return FileUtils.readFileToString(accountXml.toFile());
     }
 

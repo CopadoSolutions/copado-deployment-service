@@ -69,4 +69,22 @@ public class UserCasesTest {
         assertThat(salesforceServiceLog().getDeployRequests().get(0), is(equalTo(deployRequestOf(testFolder))));
     }
 
+    @Test
+    public void useCase_basicDeployment_withTwoArtifacts_checkGit() throws CopadoException, IOException {
+        final String testFolder = "useCase_basicDeployment_withTwoArtifacts_checkGit";
+
+        setUpBasicUseCaseWithArtifacts(testFolder);
+
+        executeJob();
+
+        final Path clonedMainRepository = cloneRemoteEnvUatBranch();
+        final Path clonedFirstAritactRepository = cloneMasterFromFirstAritactRepository();
+        final Path clonedSecondAritactRepository = cloneMasterFromSecondAritactRepository();
+
+        assertThat(readAccountXmlFromLocalGit(clonedMainRepository), containsString("<label>Active Edited</label>"));
+        assertThat(readActiveFieldFromAccountXmlInGit(clonedFirstAritactRepository), containsString("<label>Active Edited</label>"));
+        assertThat(readActiveFieldFromAccountXmlInGit(clonedSecondAritactRepository), containsString("<label>Active Edited</label>"));
+
+    }
+
 }

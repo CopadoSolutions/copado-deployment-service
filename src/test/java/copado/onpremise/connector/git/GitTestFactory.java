@@ -27,21 +27,44 @@ public class GitTestFactory {
 
     private static GitDataSource dataSource;
     private static GitDataSet dataSet;
+    private static final String REPOSITORY_DEFAULT_FOLDER = "test_repo.git";
 
     public static void setUp(String currentTestFolder) {
         GitTestFactory.dataSource = new GitDataSource(currentTestFolder);
         GitTestFactory.dataSet = new GitDataSet();
     }
 
-    public static void setUpGitWithNewCopyOfRemote(String currentTestFolder){
+    public static void setUpGitWithNewCopyOfRemote(String currentTestFolder) {
         setUp(currentTestFolder);
+        Path source = currentRemoteDirectoryPath();
+        Path newOriginalRepositoryPath = copyDirectory(source);
+        GitTestFactory.dataSource().setCurrentRemoteDir(newOriginalRepositoryPath);
+    }
+
+    public static Path setUpGitWithFirstArtifactRemote(String testFolder) {
+        Path firstArtifactRemote = repositoryDirectory(testFolder).resolve("givenFirstArtifactRemote").resolve(REPOSITORY_DEFAULT_FOLDER).toAbsolutePath();
+        dataSource.setCurrentFirstArtifactRemote(copyDirectory(firstArtifactRemote));
+        return dataSource.getCurrentFirstArtifactRemote();
+    }
+
+    public static Path setUpGitWithSecondArtifactRemote(String testFolder) {
+        Path secondArtifactRemote = repositoryDirectory(testFolder).resolve("givenSecondArtifactRemote").resolve(REPOSITORY_DEFAULT_FOLDER).toAbsolutePath();
+        dataSource.setCurrentSecondArtifactRemote(copyDirectory(secondArtifactRemote));
+        return dataSource.getCurrentSecondArtifactRemote();
+    }
+
+    private static Path repositoryDirectory(String testFolder) {
+        return Paths.get("src", "test", "resources", "repositories", testFolder);
+    }
+
+    private static Path copyDirectory(Path source) {
         Path newOriginalRepositoryPath = createTempDir("newRemoteGit");
         try {
-            FileUtils.copyDirectory(currentRemoteDirectoryPath().toFile(), newOriginalRepositoryPath.toFile());
+            FileUtils.copyDirectory(source.toFile(), newOriginalRepositoryPath.toFile());
         } catch (IOException e) {
             throw new RuntimeException("Could not copy remote git repository into a new directory", e);
         }
-        GitTestFactory.dataSource().setCurrentRemoteDir(newOriginalRepositoryPath);
+        return newOriginalRepositoryPath;
     }
 
     public static void tearDown() {
@@ -49,7 +72,7 @@ public class GitTestFactory {
         GitTestFactory.dataSet = null;
     }
 
-    public static GitCredentials buildCorrectCredentials(String testFolder){
+    public static GitCredentials buildCorrectCredentials(String testFolder) {
         final GitCredentials givenGitCredentials = mock(GitCredentials.class);
         when(givenGitCredentials.getPassword()).thenReturn("");
         when(givenGitCredentials.getUsername()).thenReturn("");
@@ -57,7 +80,7 @@ public class GitTestFactory {
         return givenGitCredentials;
     }
 
-    public static GitService initGitService(){
+    public static GitService initGitService() {
         return new GitServiceImpl(GitSessionImpl::new, BranchImpl::new, new GitServiceRemoteImpl());
     }
 
@@ -218,7 +241,7 @@ public class GitTestFactory {
         return originalRepository;
     }
 
-    public static Path currentRemoteArtifactRepositoryPath(){
+    public static Path currentRemoteArtifactRepositoryPath() {
         return currentRemoteDirectoryPath().getParent().resolve("artifact_repository.git");
     }
 
