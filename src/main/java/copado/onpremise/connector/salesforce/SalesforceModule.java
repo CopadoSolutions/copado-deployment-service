@@ -6,7 +6,7 @@ import com.google.inject.Provides;
 
 public class SalesforceModule extends AbstractModule {
 
-    private SalesforceUtils salesforceUtils;
+    private SalesforceUtils salesforceUtils = new SalesforceUtils();
 
     @Override
     protected void configure() {
