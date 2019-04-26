@@ -2,16 +2,20 @@ package copado.onpremise.job;
 
 import com.google.inject.Inject;
 import com.sforce.soap.metadata.MetadataConnection;
-import com.sforce.soap.partner.fault.UnexpectedErrorFault;
-import com.sforce.ws.ConnectionException;
+import copado.onpremise.connector.copado.CopadoService;
+import copado.onpremise.connector.copado.CopadoTip;
+import copado.onpremise.connector.copadodx.CopadoDxService;
+import copado.onpremise.connector.file.PathService;
+import copado.onpremise.connector.git.Branch;
+import copado.onpremise.connector.git.GitService;
+import copado.onpremise.connector.git.GitSession;
+import copado.onpremise.connector.salesforce.TipLevel;
+import copado.onpremise.connector.salesforce.data.SalesforceDeployerDelegate;
+import copado.onpremise.connector.salesforce.data.SalesforceService;
+import copado.onpremise.connector.salesforce.metadata.DeploymentResult;
+import copado.onpremise.connector.salesforce.metadata.MetadataConnectionService;
 import copado.onpremise.exception.CopadoException;
-import copado.onpremise.service.file.PathService;
-import copado.onpremise.service.git.Branch;
-import copado.onpremise.service.git.GitService;
-import copado.onpremise.service.git.GitSession;
-import copado.onpremise.service.salesforce.CopadoService;
-import copado.onpremise.service.salesforce.MetadataConnectionService;
-import copado.onpremise.service.salesforce.SalesforceService;
+import copado.onpremise.service.credential.GitCredentialService;
 import copado.onpremise.service.validation.ValidationResult;
 import copado.onpremise.service.validation.ValidationService;
 import lombok.NonNull;
@@ -26,9 +30,14 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.toList;
 
 
 @RequiredArgsConstructor(onConstructor = @__({@Inject}))
@@ -41,6 +50,7 @@ public class OnPremiseDeploymentJob implements Job {
     private static final String ZIP_EXT = "zip";
     private static final String MASTER = "master";
     private static final String PAYLOAD_JSON = "payload.json";
+    private static final String FAILED = "Failed";
 
     @NonNull
     private ValidationService validationService;
@@ -60,6 +70,14 @@ public class OnPremiseDeploymentJob implements Job {
     @NonNull
     private MetadataConnectionService metadataConnectionService;
 
+    @NonNull
+    private CopadoDxService copadoDxService;
+
+    @NonNull
+    private GitCredentialService gitCredentialService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Setter
     private String deployBranchName;
 
@@ -76,48 +94,207 @@ public class OnPremiseDeploymentJob implements Job {
             gitTMP = createTemporalGitPath();
             deployZipFileTMPDir = createTemporalDeployZipPath();
 
-            GitSession git = gitService.cloneRepo(gitTMP);
+            GitSession git = gitService.cloneRepo(gitTMP, gitCredentialService.getCredentialsForMainRepository());
             DeployRequest request = downloadAllBranchesAndReadDeploymentRequest(git);
             deploymentJobId = request.getDeploymentJobId();
             Path deployZipFileTMP = copyDeployZipToTemporalDir(gitTMP, deployZipFileTMPDir, git);
             log.atInfo().log("Deploy zip file tmp: %s", deployZipFileTMP);
             validatePromoteBranch(request, gitTMP, git, deployZipFileTMP);
 
-            deployZip(request, deployZipFileTMP);
+            DeploymentResult deploymentResult = deployZip(request, deployZipFileTMP);
+            processDeploymentResult(git, request, deploymentResult);
 
-            mergeAndPushDeployment(request, git);
-
-            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Success");
-
-
-        } catch (CopadoException e) {
-            log.atSevere().withCause(e).log("On premise deployment failed");
-            copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
-        } catch (UnexpectedErrorFault e) {
-            log.atSevere().withCause(e).log("On premise deployment failed");
-            copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
         } catch (Exception e) {
             log.atSevere().withCause(e).log("On premise deployment failed");
-            copadoService.updateDeploymentJobStatus(deploymentJobId, buildErrorStatus(e));
+            copadoService.updateDeploymentJobStatus(deploymentJobId, FAILED);
         } finally {
             pathService.safeDelete(gitTMP);
             pathService.safeDelete(deployZipFileTMPDir);
         }
     }
 
-    private void mergeAndPushDeployment(DeployRequest request, GitSession git) throws CopadoException {
+    private void processDeploymentResult(GitSession git, DeployRequest request, DeploymentResult deploymentResult) throws CopadoException {
+        List<CopadoTip> tips = new ArrayList<>(deploymentResult.getTips());
 
-        // Commit changes on git
-        Branch promoteBranchRef = gitService.getBranch(git, request.getPromoteBranch());
-        gitService.mergeWithBranch(git, promoteBranchRef, request.getTargetBranch());
+        if (deploymentResult.isSuccess()) {
+
+            if (!request.isCheckOnly()) {
+                copadoService.updateDeploymentJobValidationId(request.getDeploymentJobId(), deploymentResult.getAsyncId());
+
+                tips.addAll(mergeAndPushDeployment(request, git));
+            }
+
+            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Success");
+
+        } else {
+            copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), FAILED);
+        }
+
+        uploadTipsAttachmentToDeployment(request, tips);
+    }
+
+    private void uploadTipsAttachmentToDeployment(DeployRequest request, final List<CopadoTip> tips) throws CopadoException {
+        log.atInfo().log("Number of tips to be saved: {}", tips.size());
+        if (!tips.isEmpty()) {
+            String tipsJson = buildTipListJson(tips);
+            String deploymentId = copadoService.getDeploymentId(request.getDeploymentJobId());
+            String tipsJsonAttachmentName = request.getDeploymentJobId() + ".json";
+            copadoService.createTxtAttachment(deploymentId, tipsJsonAttachmentName, tipsJson);
+        }
+    }
+
+    private String buildTipListJson(final List<CopadoTip> tips) throws CopadoException {
+        String tipsJson;
+        try {
+            tipsJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(tips);
+        } catch (IOException e) {
+            log.atSevere().withCause(e).log("Could not parse tips list");
+            throw new CopadoException("Could not parse tips list");
+        }
+        return tipsJson;
+    }
+
+    private List<CopadoTip> mergeAndPushDeployment(DeployRequest request, GitSession git) throws CopadoException {
+
+        checkIfTargetBranchChanged(request, git);
+        commitBeforeMerge(request, git);
+        mergeIfItIsNotDxSource(request, git);
+        return mergeDxIfThereIsAnyArtifact(request);
+    }
+
+    private List<CopadoTip> mergeDxIfThereIsAnyArtifact(DeployRequest request) {
+        List<String> artifactRepositoryErrors = new ArrayList<>();
+
+        request.getArtifactRepositoryIds().forEach(artifactRepositoryId -> cloneAndMergeArtifact(artifactRepositoryErrors, artifactRepositoryId));
+
+        if (!artifactRepositoryErrors.isEmpty()) {
+
+            return artifactRepositoryErrors
+                    .stream()
+                    .map(stringToErrorTip())
+                    .collect(toList());
+
+        }
+        return Collections.emptyList();
+
+    }
+
+    private Function<String, CopadoTip> stringToErrorTip() {
+        return errorMessage -> new CopadoTip(TipLevel.ERROR, errorMessage, "");
+    }
+
+    private void cloneAndMergeArtifact(List<String> artifactRepositoryErrors, String artifactRepositoryId) {
+        createArtifactRepositoryDir(artifactRepositoryErrors, artifactRepositoryId).ifPresent(artifactRepositoryBasePath ->
+                cloneAndMergeForArtifact(artifactRepositoryErrors, artifactRepositoryId, artifactRepositoryBasePath));
+    }
+
+    private void cloneAndMergeForArtifact(List<String> artifactRepositoryErrors, String artifactRepositoryId, Path artifactRepositoryBasePath) {
+        cloneArtifactRepository(artifactRepositoryErrors, artifactRepositoryId, artifactRepositoryBasePath)
+                .ifPresent(gitSession -> getBranchAndMergeForArtifact(artifactRepositoryErrors, artifactRepositoryId, gitSession));
+    }
+
+    private void getBranchAndMergeForArtifact(List<String> artifactRepositoryErrors, String artifactRepositoryId, GitSession gitSession) {
+        getBranchForArtifact(artifactRepositoryErrors, artifactRepositoryId, gitSession).ifPresent(deploymentBranch ->
+                mergeBranchForArtifact(artifactRepositoryErrors, artifactRepositoryId, gitSession, deploymentBranch));
+    }
+
+    private Optional<Branch> getBranchForArtifact(List<String> artifactRepositoryErrors, String artifactRepositoryId, GitSession gitSession) {
+        try {
+            return Optional.of(gitService.getBranch(gitSession, deployBranchName));
+        } catch (CopadoException e) {
+            String errorMessage = String.format("Could not get branch '%s' for artifact repository '%s'", deployBranchName, artifactRepositoryId);
+            log.atSevere().withCause(e).log(errorMessage);
+            artifactRepositoryErrors.add(errorMessage);
+            return Optional.empty();
+        }
+    }
+
+    private void mergeBranchForArtifact(List<String> artifactRepositoryErrors, String artifactRepositoryId, GitSession gitSession, Branch deploymentBranch) {
+        try {
+            gitService.mergeWithNoFastForward(gitSession, deploymentBranch, MASTER);
+            gitService.push(gitSession);
+        } catch (CopadoException e) {
+            String errorMessage = String.format("Could not merge branch '%s' for artifact repository '%s'", deploymentBranch, artifactRepositoryId);
+            log.atSevere().withCause(e).log(errorMessage);
+            artifactRepositoryErrors.add(errorMessage);
+        }
+    }
+
+    private Optional<GitSession> cloneArtifactRepository(List<String> artifactRepositoryErrors, String artifactRepositoryId, Path artifactRepositoryBasePath) {
+        try {
+            return Optional.of(gitService.cloneRepo(artifactRepositoryBasePath, gitCredentialService.getCredentials(artifactRepositoryId)));
+        } catch (CopadoException e) {
+            String errorMessage = String.format("Could not clone artifact git repository: %s", artifactRepositoryId);
+            log.atSevere().withCause(e).log(errorMessage);
+            artifactRepositoryErrors.add(errorMessage);
+        }
+        return Optional.empty();
+
+    }
+
+    private Optional<Path> createArtifactRepositoryDir(List<String> artifactRepositoryErrors, String artifactRepositoryId) {
+        try {
+            return Optional.of(createTemporalGitPath());
+        } catch (IOException e) {
+            String errorMessage = String.format("Could not create temporal directory for artifact git repository: %s", artifactRepositoryId);
+            log.atSevere().withCause(e).log(errorMessage);
+            artifactRepositoryErrors.add(errorMessage);
+            return Optional.empty();
+        }
+    }
+
+    private void mergeIfItIsNotDxSource(DeployRequest request, GitSession git) throws CopadoException {
+        boolean isNotDxSource = !copadoDxService.isDxSource(request.getPromoteBranch(), copadoService.getSourceOrgId(request.getDeploymentJobId()));
+        boolean hasGitDifferences = gitService.hasDifferences(git, request.getPromoteBranch(), request.getTargetBranch());
+        if (isNotDxSource && hasGitDifferences) {
+
+            Branch gitTargetBranch = gitService.getBranch(git, request.getTargetBranch());
+            Branch gitPromotionBranch = gitService.getBranch(git, request.getPromoteBranch());
+
+            gitService.mergeWithNoFastForward(git, gitTargetBranch, request.getPromoteBranch());
+            gitService.push(git);
+
+            gitService.mergeWithNoFastForward(git, gitPromotionBranch, request.getTargetBranch());
+            gitService.push(git);
+
+            gitService.mergeWithNoFastForward(git, gitTargetBranch, request.getPromoteBranch());
+            gitService.push(git);
+        }
+    }
+
+    private void commitBeforeMerge(DeployRequest request, GitSession git) throws CopadoException {
+        String commitMessage = String.format("Copado merge %s into %s", request.getPromoteBranch(), request.getTargetBranch());
+        gitService.commit(git, commitMessage, request.getGitAuthor(), request.getGitAuthorEmail());
         gitService.push(git);
     }
 
-    private void deployZip(DeployRequest request, Path deployZipFileTMP) throws ConnectionException, IOException, CopadoException, InterruptedException {
-        MetadataConnection destinationOrgMetadata = metadataConnectionService.build(request.getOrgDestId());
-        salesforceService.deployZip(destinationOrgMetadata, deployZipFileTMP.toAbsolutePath().toString());
+    private void checkIfTargetBranchChanged(DeployRequest request, GitSession git) throws CopadoException {
+        String currentHead = gitService.getHead(git);
+        gitService.fetchBranch(git, request.getTargetBranch());
+        String newFetchedHead = gitService.getHead(git);
+        if (!newFetchedHead.equals(currentHead)) {
+            String errorMessage = String.format(
+                    "Deployment Job '%s': Changes detected in target branch '%s' during deployment execution, " +
+                            "please try to restart the deployment or recreate the promotion branch out of the new target branch state. Promotion Branch = '%s'",
+                    request.getDeploymentJobId(), request.getTargetBranch(), request.getPromoteBranch());
+            log.atSevere().log(errorMessage);
+            throw new CopadoException(errorMessage);
+        }
 
-        copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Salesforce deployment step success");
+    }
+
+    private DeploymentResult deployZip(DeployRequest request, Path deployZipFileTMP) throws CopadoException {
+        MetadataConnection destinationOrgMetadata = metadataConnectionService.build(request.getOrgDestId());
+        SalesforceDeployerDelegate deployerDelegate = buildDeployerDelegate(request);
+        return salesforceService.deployZip(destinationOrgMetadata, deployZipFileTMP.toAbsolutePath().toString(), request, deployerDelegate);
+
+    }
+
+    private SalesforceDeployerDelegate buildDeployerDelegate(DeployRequest request) {
+        return (String asyncId) -> {
+            copadoService.updateDeploymentJobValidationId(request.getDeploymentJobId(), null);
+            copadoService.updateDeploymentJobAsyncId(request.getDeploymentJobId(), asyncId);
+        };
     }
 
     private Path createTemporalDeployZipPath() throws IOException {
@@ -132,8 +309,6 @@ public class OnPremiseDeploymentJob implements Job {
 
     private void validatePromoteBranch(DeployRequest request, Path gitTMP, GitSession git, Path deployZipFileTMP) throws CopadoException {
         gitService.checkout(git, request.getPromoteBranch());
-        copadoService.updateDeploymentJobStatus(request.getDeploymentJobId(), "Validating deployment zip with promotion branch.");
-
         ValidationResult validationResult = validationService.validate(deployZipFileTMP, gitTMP);
         log.atInfo().log("Finished validation. Success: %s, Code: %s, Message: %s", validationResult.isSuccess(), validationResult.getCode(), validationResult.getMessage());
 
@@ -160,24 +335,18 @@ public class OnPremiseDeploymentJob implements Job {
         return gitTMP;
     }
 
-    private String buildErrorStatus(Throwable e) {
-        return "On premise deployment failed:" + e.getMessage();
-    }
-
-
     private void copyDeployZipToTemporalDir(GitSession gitSession, String deploymentBranch, Path deployBranchPath, Path deployZipDest) throws IOException, CopadoException {
         gitService.checkout(gitSession, deploymentBranch);
         Path deployZip = findDeployZipPath(deployBranchPath);
         FileUtils.copyFile(new File(deployZip.toAbsolutePath().toString()), new File(deployZipDest.toAbsolutePath().toString()));
     }
 
-
     private static Path findDeployZipPath(Path deployBranchPath) throws CopadoException, IOException {
         List<Path> zipFiles;
         try (Stream<Path> s = Files.walk(deployBranchPath.resolve(GIT_DEPLOY_DIR_IN_BRANCH))) {
             zipFiles = s.filter(Files::isRegularFile)
                     .filter(f -> ZIP_EXT.equalsIgnoreCase(FilenameUtils.getExtension(f.toString())))
-                    .collect(Collectors.toList());
+                    .collect(toList());
         }
 
         if (zipFiles != null && zipFiles.size() == 1) {
