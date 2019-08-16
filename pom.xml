@@ -12,7 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
-        <salesforce.version>43.0.0</salesforce.version>
+        <salesforce.version>46.0.0</salesforce.version>
         <main.class>copado.onpremise.Application</main.class>
     </properties>
 
