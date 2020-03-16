@@ -1,0 +1,16 @@
+{
+  "deploymentJobId": "DEPLOYMENT_JOB_ID",
+  "promoteBranch": "promotion/TEST",
+  "targetBranch": "env/UAT",
+  "copadoJobId": "COPADO_JOB_ID",
+  "orgDestId": "TEST_DEPLOYMENT_ORG_ID",
+  "testLevel": "RunSpecifiedTests",
+  "testClasses": [
+    "TEST_CLASS_1",
+    "TEST_CLASS_2"
+  ],
+  "checkOnly": false,
+  "gitAuthor": "TEST_AUTHOR",
+  "gitAuthorEmail": "TEST_AUTHOR@email.com",
+  "artifactRepositoryIds": []
+}
