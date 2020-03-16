@@ -129,7 +129,7 @@ public class SalesforceServiceImpl implements SalesforceService {
             asyncResult = metadataConnection.deploy(zipBytes, deployOptions);
         } catch (ConnectionException e) {
             log.atSevere().withCause(e).log("Could not deploy metadata");
-            throw new CopadoException("Could not deploy metadata");
+            throw new CopadoException("Could not deploy metadata", e);
         }
         return asyncResult;
     }

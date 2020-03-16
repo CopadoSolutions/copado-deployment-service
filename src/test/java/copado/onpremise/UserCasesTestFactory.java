@@ -54,11 +54,12 @@ public class UserCasesTestFactory {
     }
 
     public static DeployRequest deployRequestOf(String testFolder) {
-        File dataSourcePayLoad = dataSourceFolder(testFolder).resolve("payload.json").toFile();
+        Path dataSourcePayLoadPath = dataSourceFolder(testFolder).resolve("payload.json");
+        File dataSourcePayLoad = dataSourcePayLoadPath.toFile();
         try {
             return new ObjectMapper().readValue(FileUtils.readFileToString(dataSourcePayLoad), DeployRequest.class);
         } catch (Exception e) {
-            throw new RuntimeException("Could not read file: " + dataSourcePayLoad);
+            throw new RuntimeException("Could not read file: " + dataSourcePayLoadPath.toAbsolutePath().toString(), e);
         }
     }
 
